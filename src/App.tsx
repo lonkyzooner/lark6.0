@@ -22,9 +22,8 @@ const AdvancedDashboard = lazy(() => import('./components/AdvancedDashboard').th
 import { LiveKitVoiceProvider } from './contexts/LiveKitVoiceContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import MirandaErrorBoundary from './components/MirandaErrorBoundary';
-import { startPerformanceMonitoring } from './utils/performanceMonitor';
 import { initNetworkMonitoring } from './utils/networkOptimizer';
-import PerformanceMonitor from './components/PerformanceMonitor';
+import { initLocationTracking, getCurrentLocation, onLocationUpdate, LocationData } from './utils/locationTracker';
 import { 
   ShieldIcon, 
   BookTextIcon, 
@@ -54,8 +53,7 @@ function App({ initialTab = 'voice' }: AppProps) {
   const [batteryLevel, setBatteryLevel] = useState(87);
   const [connected, setConnected] = useState(true);
   const [location, setLocation] = useState('Baton Rouge, LA');
-  const [showDashboard, setShowDashboard] = useState(false);
-  const [showPerformanceMonitor, setShowPerformanceMonitor] = useState(false);
+  // Location state is now managed by the locationTracker utility
 
   // Update time every minute
   useEffect(() => {
@@ -65,23 +63,34 @@ function App({ initialTab = 'voice' }: AppProps) {
     return () => clearInterval(interval);
   }, []);
   
-  // Initialize performance and network monitoring
+  // Initialize network monitoring and location tracking
   useEffect(() => {
-    // Start performance monitoring
-    startPerformanceMonitoring();
-    
     // Initialize network monitoring
     initNetworkMonitoring();
     
-    // Initialize hardware if available
-    import('./hardware/uniHikerM10').then(module => {
-      module.initializeHardware().then(initialized => {
-        if (initialized) {
-          console.log('Hardware initialized successfully');
+    // Initialize location tracking
+    initLocationTracking().then(success => {
+      if (success) {
+        console.log('Location tracking initialized successfully');
+        // Update location when it changes
+        onLocationUpdate((locationData: LocationData) => {
+          if (locationData.address) {
+            setLocation(locationData.address);
+          } else {
+            setLocation(`${locationData.latitude.toFixed(4)}, ${locationData.longitude.toFixed(4)}`);
+          }
+        });
+        
+        // Set initial location if available
+        const initialLocation = getCurrentLocation();
+        if (initialLocation && initialLocation.address) {
+          setLocation(initialLocation.address);
+        } else if (initialLocation) {
+          setLocation(`${initialLocation.latitude.toFixed(4)}, ${initialLocation.longitude.toFixed(4)}`);
         }
-      });
-    }).catch(error => {
-      console.warn('Hardware initialization not available:', error);
+      } else {
+        console.warn('Location tracking initialization failed');
+      }
     });
   }, []);
 
@@ -125,24 +134,7 @@ function App({ initialTab = 'voice' }: AppProps) {
                   </h1>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowDashboard(!showDashboard)}
-                      className="focus-ring font-medium rounded-full px-4 py-2 fluid-button bg-[#003087] text-white hover:bg-[#004db3]"
-                    >
-                      {showDashboard ? 'Hide Analytics' : 'Show Analytics'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowPerformanceMonitor(!showPerformanceMonitor)}
-                      className="focus-ring font-medium rounded-full px-4 py-2 fluid-button bg-[#003087] text-white hover:bg-[#004db3]"
-                    >
-                      {showPerformanceMonitor ? 'Hide Performance' : 'Show Performance'}
-                    </Button>
-                  </div>
+                  {/* Analytics and Performance buttons removed as requested */}
                 </div>
               </div>
               <p className="text-muted-foreground text-base font-light tracking-wide">
@@ -196,14 +188,7 @@ function App({ initialTab = 'voice' }: AppProps) {
 
         {/* Main content */}
         <main className="relative mb-8 space-y-6 z-10">
-          {showDashboard && (
-            <Suspense fallback={<div className="p-8 text-center">Loading dashboard...</div>}>
-              <AdvancedDashboard />
-            </Suspense>
-          )}
-          
-          {/* Performance Monitor */}
-          <PerformanceMonitor visible={showPerformanceMonitor} onClose={() => setShowPerformanceMonitor(false)} />
+          {/* Dashboard and Performance Monitor removed as requested */}
 
           
           <Tabs defaultValue="voice" value={activeTab} onValueChange={setActiveTab} className="w-full">
