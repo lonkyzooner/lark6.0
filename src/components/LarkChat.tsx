@@ -71,7 +71,7 @@ const MessageBubble = memo(({ message, onSpeakText }: { message: Message, onSpea
          prevProps.message.timestamp === nextProps.message.timestamp;
 });
 
-function LarkChat() {
+export function LarkChat() {
   const voice = useContext(VoiceContext);
   const liveKitVoice = useContext(LiveKitVoiceContext);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -109,7 +109,9 @@ function LarkChat() {
             
             if (testResponse && !testResponse.includes('Unable to process')) {
               console.log('Successfully connected to OpenAI API');
-              chatRef.current = { initialized: true }; // Just mark as initialized since we're using the queryOpenAI function
+              chatRef.current = { initialized: true };
+
+// Just mark as initialized since we're using the queryOpenAI function
               console.log('Chat model initialized successfully');
             } else {
               throw new Error('Empty or error response from API test');
@@ -152,6 +154,7 @@ function LarkChat() {
             content: "Hello! I'm LARK, your law enforcement assistant. How can I help you today?",
             timestamp: Date.now()
           };
+
           const saved = await saveMessage(welcomeMessage);
           if (saved) {
             console.log('Welcome message saved successfully');
@@ -188,6 +191,7 @@ function LarkChat() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
+
   }, []);
 
   // Process any messages that were queued while offline
@@ -330,6 +334,7 @@ function LarkChat() {
       
       // Add user message to chat
       const userMsg: Message = { role: 'user', content: userMessage, timestamp: Date.now() };
+
       const savedUserMsg = await saveMessage(userMsg);
       if (!savedUserMsg) {
         console.warn('Failed to save user message to database, but continuing with in-memory processing');
@@ -356,6 +361,7 @@ function LarkChat() {
           content: 'I am currently offline. Your message has been queued and will be processed when the connection is restored.',
           timestamp: Date.now()
         };
+
         await saveMessage(offlineMsg);
         setMessages(prev => [...prev, offlineMsg]);
         setIsProcessing(false);
@@ -437,6 +443,7 @@ function LarkChat() {
         content: response, 
         timestamp: Date.now() 
       };
+
       
       const savedAssistantMsg = await saveMessage(assistantMsg);
       if (!savedAssistantMsg) {
@@ -463,6 +470,7 @@ function LarkChat() {
         content: 'I apologize, but I encountered an error processing your request. Please try again.',
         timestamp: Date.now()
       };
+
       await saveMessage(errorMsg);
       setMessages(prev => [...prev, errorMsg]);
       setError('Failed to process message. Please try again.');
@@ -678,3 +686,5 @@ function LarkChat() {
     </div>
   );
 };
+
+export default LarkChat;

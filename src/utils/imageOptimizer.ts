@@ -175,13 +175,25 @@ export async function isWebPSupported(): Promise<boolean> {
  * @returns Promise resolving to an optimized image blob
  */
 export async function optimizeImageForCurrentConditions(file: File | Blob): Promise<Blob> {
+  // Define extended Navigator interface with all required properties
+  interface ExtendedNavigator extends Navigator {
+    connection?: {
+      effectiveType: string;
+      saveData: boolean;
+    };
+    deviceMemory?: number;
+  }
+
+  // Cast navigator to our extended interface
+  const extendedNav = navigator as ExtendedNavigator;
+  
   // Check if the connection is slow
-  const isSlowConnection = navigator.connection && 
-    (navigator.connection as any).effectiveType === '2g' || 
-    (navigator.connection as any).saveData;
+  const connection = extendedNav.connection;
+  const isSlowConnection = connection && 
+    (connection.effectiveType === '2g' || connection.saveData);
   
   // Check available memory
-  const isLowMemoryDevice = navigator.deviceMemory && (navigator.deviceMemory as any) < 4;
+  const isLowMemoryDevice = extendedNav.deviceMemory !== undefined && extendedNav.deviceMemory < 4;
   
   // Determine appropriate settings based on conditions
   let quality = DEFAULT_QUALITY;

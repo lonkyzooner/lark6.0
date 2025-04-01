@@ -9,8 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import LarkLogo from './components/LarkLogo';
 
 // Lazy load larger components
-// Use direct import for LarkChat to avoid TypeScript issues
-import LarkChat from './components/LarkChat';
+// Use named import for LarkChat to avoid TypeScript issues
+import { LarkChat } from './components/LarkChat';
 const MirandaRights = lazy(() => import('./components/MirandaRights').then(module => ({ default: module.MirandaRights })));
 const RSCodes = lazy(() => import('./components/RSCodes').then(module => ({ default: module.RSCodes })));
 const ThreatDetection = lazy(() => import('./components/ThreatDetection').then(module => ({ default: module.ThreatDetection })));
