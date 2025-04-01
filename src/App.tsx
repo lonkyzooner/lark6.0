@@ -120,26 +120,20 @@ function App({ initialTab = 'voice' }: AppProps) {
         <VoiceIndicator />
         <div className="max-w-6xl mx-auto relative">
         {/* Enhanced background accents for visual interest */}
-        
-        {/* Modern header with sleek design */}
-        <header className="mb-8 relative fluid-card rounded-2xl p-6 border border-[rgba(255,255,255,0.5)] backdrop-blur-sm shadow-md" style={{ background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(12px)' }}>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 gap-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-foreground tracking-tight leading-none flex items-center">
-                    <LarkLogo width={50} height={50} className="mr-2" />
-                    <span className="fluid-heading">LARK</span>
-                    <span className="ml-3 text-xs font-medium fluid-badge px-3 py-1 rounded-full">1.0</span>
-                  </h1>
-                </div>
-                <div className="flex items-center gap-3">
-                  {/* Analytics and Performance buttons removed as requested */}
-                </div>
+                {/* Modern header with sleek design */}
+        <header className="mb-8 relative fluid-card rounded-2xl p-4 border border-[rgba(255,255,255,0.5)] backdrop-blur-sm shadow-md" style={{ background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(12px)' }}>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-4">
+              <LarkLogo width={45} height={45} className="mr-1" />
+              <div>
+                <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground tracking-tight leading-none flex items-center">
+                  <span className="fluid-heading">LARK</span>
+                  <span className="ml-2 text-xs font-medium fluid-badge px-2 py-1 rounded-full">1.0</span>
+                </h1>
+                <p className="text-muted-foreground text-sm font-light tracking-wide mt-1">
+                  Law Enforcement Assistance and Response Kit
+                </p>
               </div>
-              <p className="text-muted-foreground text-base font-light tracking-wide">
-                Law Enforcement Assistance and Response Kit
-              </p>
             </div>
             
             <div className="flex flex-wrap items-center gap-4 mt-2 md:mt-0 w-full md:w-auto">

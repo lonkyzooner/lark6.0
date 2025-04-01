@@ -555,8 +555,8 @@ export function LarkChat() {
       {/* Info message */}
       {infoMessage}
       
-      <ScrollArea className="flex-1 p-4 rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="space-y-4">
+      <ScrollArea className="flex-1 p-4 rounded-lg border border-border/30 bg-white/90 shadow-md backdrop-blur-sm">
+        <div className="space-y-6">
           {messageList}
           <div ref={messagesEndRef} />
         </div>
@@ -568,13 +568,13 @@ export function LarkChat() {
         </div>
       ) : (
         <div className="flex flex-col space-y-2">
-          <form onSubmit={handleSubmit} className="flex space-x-2">
+          <form onSubmit={handleSubmit} className="flex space-x-3">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your message..."
               disabled={isProcessing}
-              className="flex-1 text-black border-gray-300 focus:border-[#003087] focus:ring-[#003087] rounded-lg"
+              className="flex-1 text-black border-border/30 focus:border-[#003087] focus:ring-[#003087] rounded-full py-6 px-4 shadow-sm bg-white/90 backdrop-blur-sm"
             />
             <TooltipProvider>
               <Tooltip>
@@ -583,7 +583,7 @@ export function LarkChat() {
                     type="submit" 
                     disabled={isProcessing || !input.trim()}
                     variant="default"
-                    className="bg-[#003087] hover:bg-[#004db3] transition-colors"
+                    className="bg-[#003087] hover:bg-[#004db3] transition-colors rounded-full p-6 h-auto w-auto shadow-md"
                   >
                     <SendIcon className="h-5 w-5" />
                   </Button>

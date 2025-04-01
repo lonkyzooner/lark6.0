@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSettings } from '../lib/settings-store';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -6,6 +6,7 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Slider } from './ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { User, LogOut } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -25,6 +26,11 @@ import { useVoice } from '../contexts/VoiceContext';
 import LiveKitRealtimeVoiceTest from './LiveKitRealtimeVoiceTest';
 
 export function Settings() {
+  // Add Account button functionality
+  const handleAccountClick = () => {
+    // Open account settings or profile page
+    console.log('Account button clicked');
+  };
   const { settings, updateOfficerName, updateVoicePreferences, updateOfflineMode, updateCommandContext } = useSettings();
   const { speak } = useVoice();
   const [localName, setLocalName] = useState(settings.officerName);
@@ -62,7 +68,17 @@ export function Settings() {
 
   return (
     <div className="container mx-auto p-4 space-y-4">
-      <h2 className="text-2xl font-bold mb-4">Settings</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Settings</h2>
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2 rounded-full border-border/30 shadow-sm hover:bg-secondary/20"
+          onClick={() => window.open('/account', '_blank')}
+        >
+          <User size={16} />
+          <span>Account</span>
+        </Button>
+      </div>
       
       <Tabs defaultValue="profile" className="w-full">
         <TabsList>
