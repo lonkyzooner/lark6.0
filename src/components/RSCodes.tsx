@@ -403,7 +403,7 @@ export function RSCodes() {
                 value={statuteInput}
                 onChange={(e) => setStatuteInput(e.target.value)}
                 placeholder="e.g., 'La. R.S. 14:30' or '14:30'"
-                className="flex-1 bg-background border-input"
+                className="flex-1 bg-white text-slate-900 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
               />
               <Button 
                 onClick={() => handleStatuteLookup(statuteInput, setIsLoading, setResult, setSuggestedCharges, synthesizeSpeech, resultRef, setStatuteUrl)}
@@ -419,8 +419,8 @@ export function RSCodes() {
         <TabsContent value="analyze" className="space-y-4 mt-0">
           <div className="space-y-2">
             <div className="flex justify-between">
-              <div className="flex items-center text-white/80 text-sm font-mono">
-                <Scale className="h-4 w-4 mr-1 text-blue-400" />
+              <div className="flex items-center text-slate-900 text-sm font-medium">
+                <Scale className="h-4 w-4 mr-1 text-blue-600" />
                 <span>Describe the situation</span>
               </div>
               
@@ -455,7 +455,7 @@ export function RSCodes() {
               value={situationInput}
               onChange={(e) => setSituationInput(e.target.value)}
               placeholder="E.g.: Subject was observed taking merchandise valued at $75 from a store without paying and concealing it in their backpack..."
-              className="min-h-[120px] bg-background border-input"
+              className="min-h-[120px] bg-white text-slate-900 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
             />
             
 

@@ -23,7 +23,6 @@ import {
 } from './ui/tabs';
 import { Separator } from './ui/separator';
 import { useVoice } from '../contexts/VoiceContext';
-import LiveKitRealtimeVoiceTest from './LiveKitRealtimeVoiceTest';
 
 export function Settings() {
   // Add Account button functionality
@@ -47,33 +46,52 @@ export function Settings() {
 
   // Save officer profile when input is complete
   const handleProfileSave = () => {
-    updateOfficerName(localName);
-    updateOfficerRank(localRank);
-    updateOfficerCodename(localCodename);
+    // Trim values to remove extra spaces
+    const trimmedName = localName.trim();
+    const trimmedRank = localRank.trim();
+    const trimmedCodename = localCodename.trim();
+    
+    // Update state with trimmed values
+    updateOfficerName(trimmedName);
+    updateOfficerRank(trimmedRank);
+    updateOfficerCodename(trimmedCodename);
+    
+    // Store to localStorage with trimmed values for redundancy
+    localStorage.setItem('lark-officer-name', trimmedName);
+    localStorage.setItem('lark-officer-rank', trimmedRank);
+    localStorage.setItem('lark-officer-codename', trimmedCodename);
     
     // Construct appropriate greeting using rank and name or codename
     let greeting = '';
-    if (localCodename) {
-      greeting = `Thank you, I'll remember to call you ${localCodename}.`;
-    } else if (localName) {
-      greeting = `Thank you, I'll remember to call you ${localRank} ${localName}.`;
+    let displayName = '';
+    
+    if (trimmedCodename) {
+      // Codename takes priority when set
+      displayName = trimmedCodename;
+      greeting = `Thank you, I'll remember to call you ${displayName}.`;
+    } else if (trimmedName) {
+      // When no codename, use rank and name
+      displayName = `${trimmedRank} ${trimmedName}`;
+      greeting = `Thank you, I'll address you as ${displayName}.`;
     } else {
       greeting = 'Profile updated successfully.';
     }
     
+    // Display confirmation to user
     speak(greeting);
     
-    // Store to localStorage as well for redundancy
-    localStorage.setItem('lark-officer-name', localName);
-    localStorage.setItem('lark-officer-rank', localRank);
-    localStorage.setItem('lark-officer-codename', localCodename);
+    // Update local state with trimmed values
+    setLocalName(trimmedName);
+    setLocalRank(trimmedRank);
+    setLocalCodename(trimmedCodename);
     
     // Notify other components about the profile update
     document.dispatchEvent(new CustomEvent('officerProfileUpdated', { 
       detail: { 
-        name: localName,
-        rank: localRank,
-        codename: localCodename 
+        name: trimmedName,
+        rank: trimmedRank,
+        codename: trimmedCodename,
+        displayName: displayName || trimmedRank // Fallback to rank if nothing else
       } 
     }));
   };
@@ -278,15 +296,7 @@ export function Settings() {
                 Test Voice Settings
               </Button>
               
-              <Separator className="my-6" />
-              
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">LiveKit Voice Test</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Test the LiveKit voice synthesis system with custom text
-                </p>
-                <LiveKitRealtimeVoiceTest />
-              </div>
+              {/* LiveKit Voice Test section has been removed as requested */}
             </CardContent>
           </Card>
         </TabsContent>

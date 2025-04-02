@@ -95,10 +95,10 @@ const DashboardPage: React.FC = () => {
             
             {/* Account button with improved styling */}
             <Button 
-              variant="outline" 
+              variant="secondary" 
               size="sm"
               onClick={() => navigate('/account')}
-              className="text-white border-white/20 hover:bg-white/10 rounded-full px-4 backdrop-blur-sm"
+              className="text-blue-950 bg-white/90 border-blue-200 hover:bg-white rounded-full px-4 font-medium shadow-md"
             >
               My Account
             </Button>
