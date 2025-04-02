@@ -71,33 +71,66 @@ export const LiveKitVoiceProvider: React.FC<{ children: React.ReactNode }> = ({ 
     });
   }, []);
 
-  // Request microphone permission
+  // Request microphone permission with improved error handling
   const requestMicrophonePermission = useCallback(async () => {
     try {
+      // First check if we're in a secure context (required for permissions)
+      if (window.isSecureContext === false) {
+        addDebugMessage('Cannot request microphone: not in a secure context (HTTPS required)');
+        setMicPermission('denied');
+        return false;
+      }
+      
       const result = await liveKitVoiceService.requestMicrophonePermission();
       addDebugMessage(`Microphone permission ${result ? 'granted' : 'denied'}`);
+      
+      // Update the mic permission state
+      setMicPermission(result ? 'granted' : 'denied');
+      
+      // If denied, log a helpful message about fallback functionality
+      if (!result) {
+        console.log('Operating without microphone access - text input mode only');
+      }
+      
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       addDebugMessage(`Error requesting microphone permission: ${errorMessage}`);
+      
+      // Set a more specific error type based on the error message
       setError({
         type: 'permission_error',
-        message: errorMessage
+        message: 'Microphone access is blocked. Please enable it in your browser settings.',
+        timestamp: Date.now(),
+        recoverable: false
       });
+      
+      // Update permission state
+      setMicPermission('denied');
+      
+      // Log that we'll continue in text-only mode
+      console.log('Continuing in text-only mode due to microphone permission issues');
       return false;
     }
   }, [addDebugMessage]);
 
-  // Connect to LiveKit room
+  // Connect to LiveKit room with better fallback handling
   const connect = useCallback(async (customRoomName?: string, requireMicrophone: boolean = false) => {
     try {
-      // Check microphone permission only if required
+      // Check microphone permission if needed, but don't block connection
       if (requireMicrophone) {
         if (micPermission === 'unknown' || micPermission === 'prompt') {
-          const permissionGranted = await requestMicrophonePermission();
-          if (!permissionGranted) {
-            addDebugMessage('Microphone permission denied, but will continue for TTS only');
-            // Don't throw error, just log it and continue
+          try {
+            const permissionGranted = await requestMicrophonePermission();
+            if (!permissionGranted) {
+              addDebugMessage('Microphone permission denied, continuing with text input only');
+              // Inform the user that voice input is unavailable but text will work
+              console.log('Voice input unavailable - using text input mode');
+            }
+          } catch (permError) {
+            // Don't fail the connection attempt, just log the error
+            console.error('Error checking microphone permission, continuing anyway:', permError);
+            addDebugMessage('Error checking microphone permission, but continuing for TTS only');
           }
         } else if (micPermission === 'denied') {
           addDebugMessage('Microphone permission denied, but will continue for TTS only');

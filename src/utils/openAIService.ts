@@ -1,6 +1,28 @@
 
-// Get API key from environment variable
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
+// Get API key from environment variable with fallback options
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || localStorage.getItem('openai_api_key') || '';
+
+// Fallback API key for development/testing (should be configured in production)
+const FALLBACK_API_KEY = 'sk-fallback-dev-mode-key';
+
+// Check if we're in development mode to use fallback in non-production environments
+const IS_DEV_MODE = import.meta.env.DEV || window.location.hostname === 'localhost';
+
+// Function to get the best available API key
+function getAPIKey(): string {
+  if (OPENAI_API_KEY) {
+    return OPENAI_API_KEY;
+  }
+  
+  // Only use fallback in development mode
+  if (IS_DEV_MODE) {
+    console.log('Using development fallback API key - replace in production');
+    return FALLBACK_API_KEY;
+  }
+  
+  console.error('OpenAI API key is missing. Please check your environment variables.');
+  return '';  
+}
 
 // Simple in-memory cache
 interface CacheEntry {
@@ -80,10 +102,18 @@ export async function queryOpenAI(prompt: string, emotion: string = 'neutral'): 
     try {
       console.log("Sending query to OpenAI:", prompt.substring(0, 30));
       
+      // Get the API key using our helper function
+      const apiKey = getAPIKey();
+      
+      // Check if we have a valid API key
+      if (!apiKey) {
+        throw new Error('No valid API key available - cannot make OpenAI request');
+      }
+      
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

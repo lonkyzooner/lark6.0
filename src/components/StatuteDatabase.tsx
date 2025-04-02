@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { handleStatuteLookup } from './RSCodes';
+import { useVoice } from '../contexts/VoiceContext';
 
 interface StatuteProps {
   statute: string;
@@ -7,10 +8,24 @@ interface StatuteProps {
 }
 
 const StatuteDatabase: React.FC<StatuteProps> = ({ statute, description }) => {
-  // Example of using RSCodes function
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState('');
+  const [suggestedCharges, setSuggestedCharges] = useState<string[]>([]);
+  const [statuteUrl, setStatuteUrl] = useState<string | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+  const { speak } = useVoice();
+  
+  // Call the handleStatuteLookup function with all required parameters
   const handleStatuteLookupLocal = () => {
-    handleStatuteLookup(statute);
-    // Additional logic can be added here if needed
+    handleStatuteLookup(
+      statute,
+      setIsLoading,
+      setResult,
+      setSuggestedCharges,
+      speak,
+      resultRef,
+      setStatuteUrl
+    );
   };
 
   return (
@@ -19,10 +34,31 @@ const StatuteDatabase: React.FC<StatuteProps> = ({ statute, description }) => {
       <div className="text-sm font-medium mb-1 text-lark-light-blue">
         {statute}
       </div>
-      <div className="text-xs">
+      <div className="text-xs text-white/90 mb-3">
         {description}
       </div>
-      <button onClick={handleStatuteLookupLocal}>Lookup Statute</button>
+      <button 
+        onClick={handleStatuteLookupLocal}
+        className="px-3 py-1.5 text-xs bg-lark-light-blue/20 hover:bg-lark-light-blue/30 text-white rounded-md transition-colors"
+        disabled={isLoading}
+      >
+        {isLoading ? 'Loading...' : 'Lookup Statute'}
+      </button>
+      
+      {/* Hidden result container for scrolling */}
+      <div ref={resultRef} className="hidden"></div>
+      
+      {/* Show results if available */}
+      {result && (
+        <div className="mt-3 p-2 bg-white/5 rounded text-xs text-white/80">
+          {result}
+          {statuteUrl && (
+            <a href={statuteUrl} target="_blank" rel="noopener noreferrer" className="text-lark-light-blue hover:underline flex items-center gap-1 mt-2">
+              <small>View Statute</small>
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 };

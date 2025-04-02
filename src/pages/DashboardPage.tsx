@@ -71,28 +71,36 @@ const DashboardPage: React.FC = () => {
   // Otherwise show the main dashboard with the App component
   return (
     <div className="min-h-screen">
-      <div className="bg-gradient-to-r from-blue-900 to-blue-800 p-4 shadow-md">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-white">LARK Dashboard</h1>
-            <p className="text-blue-200">
-              {subscriptionTier ? `${subscriptionName} Plan` : 'Welcome to LARK'}
-            </p>
+      {/* Modern header with law enforcement blue gradient */}
+      <div className="p-4 bg-gradient-to-r from-[#002166] to-[#003087]">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="bg-white/10 p-2 rounded-lg">
+              <Shield className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white tracking-wide"></h1>
+              <p className="text-blue-100 text-sm">
+                {subscriptionTier ? `LARK ${subscriptionName}` : 'LARK Assistant'}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {subscriptionTier && (
-              <div className="bg-blue-800/50 px-3 py-1 rounded-full flex items-center text-sm text-blue-100">
-                <Shield className="h-4 w-4 mr-1 text-blue-300" />
-                {subscriptionName}
-              </div>
-            )}
+          
+          <div className="flex items-center gap-3 mt-2 md:mt-0">
+            {/* Status badge */}
+            <div className="bg-white/10 px-3 py-1.5 rounded-full flex items-center text-sm text-blue-100 border border-white/5 backdrop-blur-sm">
+              <div className="h-2 w-2 rounded-full bg-green-400 mr-2 animate-pulse"></div>
+              Active
+            </div>
+            
+            {/* Account button with improved styling */}
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => navigate('/account')}
-              className="text-white border-blue-400 hover:bg-blue-800"
+              className="text-white border-white/20 hover:bg-white/10 rounded-full px-4 backdrop-blur-sm"
             >
-              Account
+              My Account
             </Button>
           </div>
         </div>

@@ -1,10 +1,20 @@
-# Welcome to your Lovable project
+# LARK - Law Enforcement Assistance and Response Kit
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/b0cde990-0f31-4c17-aa32-3beb1cc2d015
+LARK is a body-mounted AI assistant designed specifically for solo police officers, providing real-time assistance, information access, and communication capabilities to enhance officer safety and effectiveness in the field.
 
-## How can I edit this code?
+## Key Features
+
+- Voice-activated interaction using LiveKit and OpenAI Realtime API
+- Multilingual Miranda Rights delivery
+- Louisiana Statute Lookups
+- Audio-based threat detection
+- Proactive tactical feedback
+- Training mode
+- IoT integration with UniHiker M10 hardware
+
+## Deploying to Vercel
 
 There are several ways of editing your application.
 
@@ -36,19 +46,44 @@ npm i
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Vercel Deployment Instructions
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Push your code to GitHub
+   ```sh
+   git add .
+   git commit -m "Prepare for Vercel deployment"
+   git push
+   ```
 
-**Use GitHub Codespaces**
+2. Connect your GitHub repository to Vercel
+   - Create a Vercel account at https://vercel.com
+   - Click "Add New Project"
+   - Import your GitHub repository
+   - Configure project settings
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+3. Set Environment Variables in Vercel
+   - In your Vercel project settings, go to the "Environment Variables" tab
+   - Add the following environment variables:
+
+   ```
+   VITE_OPENAI_API_KEY=your_openai_api_key
+   VITE_LIVEKIT_URL=wss://lark-za4hpayr.livekit.cloud
+   VITE_LIVEKIT_API_KEY=APIriVQTTMAvLQ4
+   VITE_LIVEKIT_API_SECRET=fleSOaoOdQ0v5fOatkISxYqvNygclQAeSilRMZ1kLbwB
+   ```
+
+4. Deploy your application
+   - Click "Deploy" and wait for the build to complete
+   - Your app will be available at the provided Vercel URL
+
+## Hardware Integration
+
+This application is designed to work with the DFRobot UniHiker M10 hardware, featuring:
+- 2.8-inch touchscreen 
+- Microphone
+- USB speaker
+
+The voice implementation uses OpenAI's "Ash" voice for speech-to-text and text-to-speech capabilities.
 
 ## What technologies are used for this project?
 

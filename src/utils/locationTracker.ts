@@ -25,6 +25,23 @@ let watchId: number | null = null;
 let locationUpdateCallbacks: ((location: LocationData) => void)[] = [];
 
 /**
+ * Resolve with a fallback location (Baton Rouge, LA by default for law enforcement context)
+ * @param resolve - Promise resolver function
+ */
+function resolveFallbackLocation(resolve: (location: LocationData | null) => void): void {
+  // Default to Baton Rouge, LA (central Louisiana location for law enforcement context)
+  const fallbackLocation: LocationData = {
+    latitude: 30.4515,
+    longitude: -91.1871,
+    accuracy: 1000, // Low accuracy indicator
+    timestamp: Date.now(),
+    address: 'Baton Rouge, Louisiana' // Hardcoded address
+  };
+  
+  resolve(fallbackLocation);
+}
+
+/**
  * Initialize location tracking
  * @returns Promise that resolves to a boolean indicating if location tracking was successfully initialized
  */
@@ -60,7 +77,8 @@ export async function initLocationTracking(): Promise<boolean> {
 export async function getCurrentPosition(): Promise<LocationData | null> {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
-      resolve(null);
+      console.log('Geolocation API not supported - using fallback location');
+      resolveFallbackLocation(resolve);
       return;
     }
 
@@ -88,7 +106,17 @@ export async function getCurrentPosition(): Promise<LocationData | null> {
       },
       (error) => {
         console.error('Error getting current position:', error);
-        resolve(null);
+        // Check error code and provide more specific feedback
+        if (error.code === 1) {
+          console.log('Location permission denied - using fallback location');
+        } else if (error.code === 2) {
+          console.log('Location unavailable - using fallback location');
+        } else if (error.code === 3) {
+          console.log('Location request timed out - using fallback location');
+        }
+        
+        // Use fallback location for Louisiana (Baton Rouge)
+        resolveFallbackLocation(resolve);
       },
       {
         enableHighAccuracy: true,

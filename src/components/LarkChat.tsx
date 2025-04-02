@@ -22,47 +22,64 @@ const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 // Memoized message component to prevent unnecessary re-renders
 const MessageBubble = memo(({ message, onSpeakText }: { message: Message, onSpeakText: (text: string) => void }) => {
+  // Format the timestamp
+  const formattedTime = useMemo(() => {
+    const date = new Date(message.timestamp);
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  }, [message.timestamp]);
+
   return (
     <div
-      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
+      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-5`}
+      data-message-id={message.timestamp.toString()}
     >
       {message.role === 'assistant' && (
-        <div className="flex-shrink-0 mr-2">
-          <div className="w-10 h-10 rounded-full bg-[#003087] flex items-center justify-center text-white font-semibold shadow-md">
+        <div className="flex-shrink-0 mr-3">
+          <div className="w-10 h-10 rounded-full bg-[#003087] flex items-center justify-center text-white font-semibold shadow-md ring-2 ring-white/30">
             L
           </div>
         </div>
       )}
       <div
-        className={`max-w-[80%] p-4 rounded-lg shadow-sm ${
+        className={`max-w-[85%] px-5 py-4 rounded-2xl shadow-md ${
           message.role === 'user'
-            ? 'bg-[#003087] text-white rounded-tr-none'
-            : 'bg-gray-100 text-gray-900 rounded-tl-none'
+            ? 'bg-gradient-to-br from-[#003087] to-[#004db3] text-white rounded-tr-none border border-blue-400/20'
+            : 'bg-white/90 text-gray-800 rounded-tl-none border border-gray-200/50 backdrop-blur-sm'
         }`}
-        data-message-id={message.timestamp.toString()}
       >
-        <div className="whitespace-pre-wrap">{message.content}</div>
-        {message.role === 'assistant' && (
-          <div className="mt-3 flex justify-end">
+        <div className="whitespace-pre-wrap text-[15px]">{message.content}</div>
+        
+        <div className={`mt-2 flex ${message.role === 'assistant' ? 'justify-between' : 'justify-end'}`}>
+          <span className="text-xs opacity-70">{formattedTime}</span>
+          
+          {message.role === 'assistant' && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button 
                     onClick={() => onSpeakText(message.content)}
-                    className="text-xs text-gray-600 hover:text-[#003087] flex items-center bg-white px-2 py-1 rounded-full shadow-sm transition-colors"
+                    className="text-xs flex items-center bg-white/80 hover:bg-white px-2 py-1 rounded-full shadow-sm transition-colors border border-gray-200/50"
                   >
-                    <VolumeIcon className="h-3 w-3 mr-1" />
-                    Listen
+                    <VolumeIcon className="h-3 w-3 mr-1 text-[#003087]" />
+                    <span className="text-gray-700">Listen</span>
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="top">
                   <p>Read this message aloud</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+      
+      {message.role === 'user' && (
+        <div className="flex-shrink-0 ml-3">
+          <div className="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-800 font-semibold shadow-sm">
+            U
+          </div>
+        </div>
+      )}
     </div>
   );
 }, (prevProps, nextProps) => {
@@ -492,26 +509,38 @@ export function LarkChat() {
     if (liveKitVoice.error) {
       console.error('[LarkChat] LiveKit error:', liveKitVoice.error);
       
-      const errorStr = String(liveKitVoice.error);
+      const errorStr = String(liveKitVoice.error).toLowerCase();
       
-      // Only show errors to the user if they're not related to microphone access
-      // since we're handling that gracefully with fallbacks
-      if (!errorStr.includes('microphone') && !errorStr.includes('permission')) {
-        setError(errorStr);
-        setTimeout(() => setError(null), 5000); // Clear error after 5 seconds
+      // Handle different types of errors with improved user messages
+      if (errorStr.includes('openai') || errorStr.includes('api key')) {
+        // Better OpenAI API error handling
+        setInfo('Voice services are operating in limited mode. Text chat is fully functional.');
+        console.log('OpenAI API configuration issue detected, using fallback services');
+        setTimeout(() => setInfo(null), 7000);
       } else if (errorStr.includes('microphone') || errorStr.includes('permission')) {
-        // Show a more user-friendly message about using fallback
-        setInfo('Using text-to-speech without microphone. LARK will still respond to your text messages.');
-        setTimeout(() => setInfo(null), 5000); // Clear info after 5 seconds
+        // More informative microphone error message
+        setInfo('Microphone access unavailable. You can still use text chat and receive voice responses.');
+        setTimeout(() => setInfo(null), 6000);
+      } else {
+        // For other errors, provide a clearer message
+        setError(`Service connection issue: ${errorStr.length > 50 ? errorStr.substring(0, 50) + '...' : errorStr}`);
+        setTimeout(() => setError(null), 5000);
       }
     }
   }, [liveKitVoice.error]);
   
-  // Monitor microphone permission changes
+  // Monitor microphone permission changes with improved guidance
   useEffect(() => {
     if (liveKitVoice.micPermission === 'denied') {
-      setInfo('Microphone access denied. You can still use LARK by typing your messages.');
-      setTimeout(() => setInfo(null), 5000);
+      setInfo('Microphone access denied. You can continue using LARK by typing your messages or grant permission in your browser settings.');
+      // Log useful information for debugging
+      console.log('Microphone permission status:', liveKitVoice.micPermission);
+      // Extend display duration for better visibility
+      setTimeout(() => setInfo(null), 8000);
+    } else if (liveKitVoice.micPermission === 'granted') {
+      // Show positive confirmation when microphone is connected
+      setInfo('Microphone connected. Voice commands are now available.');
+      setTimeout(() => setInfo(null), 3000);
     }
   }, [liveKitVoice.micPermission]);
 

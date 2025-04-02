@@ -186,65 +186,77 @@ function App({ initialTab = 'voice' }: AppProps) {
 
           
           <Tabs defaultValue="voice" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-8 fluid-glass rounded-full p-2 flex flex-wrap md:flex-nowrap justify-between border border-[rgba(255,255,255,0.3)] shadow-sm gap-1 backdrop-blur-sm sticky top-0 z-20">
+            <TabsList className="mb-8 fluid-glass rounded-2xl p-3 flex flex-wrap md:flex-nowrap justify-between border border-[rgba(255,255,255,0.4)] shadow-lg gap-2 backdrop-blur-sm sticky top-0 z-20 bg-white/20">
               <TabsTrigger 
                 value="voice" 
-                className="flex-1 rounded-full py-3 data-[state=active]:le-blue-accent data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-200 hover:text-foreground focus-ring hover:bg-secondary/50 data-[state=active]:shadow-sm"
-                style={{ backgroundColor: activeTab === 'voice' ? '#003087' : 'transparent', color: activeTab === 'voice' ? 'white' : 'inherit' }}
+                className="flex-1 rounded-full py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#003087] data-[state=active]:to-[#004db3] data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-300 hover:text-foreground focus-ring hover:bg-white/70 data-[state=active]:shadow-md"
+                style={{ color: activeTab === 'voice' ? 'white' : 'inherit' }}
               >
-                <div className="flex flex-col items-center gap-1.5">
-                  <MicIcon className="h-5 w-5" />
-                  <span className="text-xs font-medium">Assistant</span>
+                <div className="flex items-center justify-center gap-2 w-full">
+                  <div className="bg-white/20 rounded-full p-1.5 shadow-inner">
+                    <MicIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">Assistant</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger 
                 value="miranda" 
-                className="flex-1 rounded-full py-3 data-[state=active]:le-blue-accent data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-200 hover:text-foreground focus-ring hover:bg-secondary/50 data-[state=active]:shadow-sm"
-                style={{ backgroundColor: activeTab === 'miranda' ? '#003087' : 'transparent', color: activeTab === 'miranda' ? 'white' : 'inherit' }}
+                className="flex-1 rounded-full py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#003087] data-[state=active]:to-[#004db3] data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-300 hover:text-foreground focus-ring hover:bg-white/70 data-[state=active]:shadow-md"
+                style={{ color: activeTab === 'miranda' ? 'white' : 'inherit' }}
               >
-                <div className="flex flex-col items-center gap-1.5">
-                  <BookTextIcon className="h-5 w-5" />
-                  <span className="text-xs font-medium">Miranda</span>
+                <div className="flex items-center justify-center gap-2 w-full">
+                  <div className="bg-white/20 rounded-full p-1.5 shadow-inner">
+                    <BookTextIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">Miranda</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger 
                 value="statutes" 
-                className="flex-1 rounded-full py-3 data-[state=active]:le-blue-accent data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-200 hover:text-foreground focus-ring hover:bg-secondary/50 data-[state=active]:shadow-sm"
-                style={{ backgroundColor: activeTab === 'statutes' ? '#003087' : 'transparent', color: activeTab === 'statutes' ? 'white' : 'inherit' }}
+                className="flex-1 rounded-full py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#003087] data-[state=active]:to-[#004db3] data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-300 hover:text-foreground focus-ring hover:bg-white/70 data-[state=active]:shadow-md"
+                style={{ color: activeTab === 'statutes' ? 'white' : 'inherit' }}
               >
-                <div className="flex flex-col items-center gap-1.5">
-                  <ShieldIcon className="h-5 w-5" />
-                  <span className="text-xs font-medium">Statutes</span>
+                <div className="flex items-center justify-center gap-2 w-full">
+                  <div className="bg-white/20 rounded-full p-1.5 shadow-inner">
+                    <ShieldIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">Statutes</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger 
                 value="threats" 
-                className="flex-1 rounded-full py-3 data-[state=active]:le-blue-accent data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-200 hover:text-foreground focus-ring hover:bg-secondary/50 data-[state=active]:shadow-sm"
-                style={{ backgroundColor: activeTab === 'threats' ? '#003087' : 'transparent', color: activeTab === 'threats' ? 'white' : 'inherit' }}
+                className="flex-1 rounded-full py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#003087] data-[state=active]:to-[#004db3] data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-300 hover:text-foreground focus-ring hover:bg-white/70 data-[state=active]:shadow-md"
+                style={{ color: activeTab === 'threats' ? 'white' : 'inherit' }}
               >
-                <div className="flex flex-col items-center gap-1.5">
-                  <AlertTriangleIcon className="h-5 w-5" />
-                  <span className="text-xs font-medium">Threats</span>
+                <div className="flex items-center justify-center gap-2 w-full">
+                  <div className="bg-white/20 rounded-full p-1.5 shadow-inner">
+                    <AlertTriangleIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">Threats</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger 
                 value="tools" 
-                className="flex-1 rounded-full py-3 data-[state=active]:le-blue-accent data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-200 hover:text-foreground focus-ring hover:bg-secondary/50 data-[state=active]:shadow-sm"
-                style={{ backgroundColor: activeTab === 'tools' ? '#003087' : 'transparent', color: activeTab === 'tools' ? 'white' : 'inherit' }}
+                className="flex-1 rounded-full py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#003087] data-[state=active]:to-[#004db3] data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-300 hover:text-foreground focus-ring hover:bg-white/70 data-[state=active]:shadow-md"
+                style={{ color: activeTab === 'tools' ? 'white' : 'inherit' }}
               >
-                <div className="flex flex-col items-center gap-1.5">
-                  <WrenchIcon className="h-5 w-5" />
-                  <span className="text-xs font-medium">Tools</span>
+                <div className="flex items-center justify-center gap-2 w-full">
+                  <div className="bg-white/20 rounded-full p-1.5 shadow-inner">
+                    <WrenchIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">Tools</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger 
                 value="settings" 
-                className="flex-1 rounded-full py-3 data-[state=active]:le-blue-accent data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-200 hover:text-foreground focus-ring hover:bg-secondary/50 data-[state=active]:shadow-sm"
-                style={{ backgroundColor: activeTab === 'settings' ? '#003087' : 'transparent', color: activeTab === 'settings' ? 'white' : 'inherit' }}
+                className="flex-1 rounded-full py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#003087] data-[state=active]:to-[#004db3] data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-300 hover:text-foreground focus-ring hover:bg-white/70 data-[state=active]:shadow-md"
+                style={{ color: activeTab === 'settings' ? 'white' : 'inherit' }}
               >
-                <div className="flex flex-col items-center gap-1.5">
-                  <SettingsIcon className="h-5 w-5" />
-                  <span className="text-xs font-medium">Settings</span>
+                <div className="flex items-center justify-center gap-2 w-full">
+                  <div className="bg-white/20 rounded-full p-1.5 shadow-inner">
+                    <SettingsIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">Settings</span>
                 </div>
               </TabsTrigger>
 
