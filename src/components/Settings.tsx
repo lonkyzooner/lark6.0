@@ -31,9 +31,11 @@ export function Settings() {
     // Open account settings or profile page
     console.log('Account button clicked');
   };
-  const { settings, updateOfficerName, updateVoicePreferences, updateOfflineMode, updateCommandContext } = useSettings();
+  const { settings, updateOfficerName, updateOfficerRank, updateOfficerCodename, updateVoicePreferences, updateOfflineMode, updateCommandContext } = useSettings();
   const { speak } = useVoice();
   const [localName, setLocalName] = useState(settings.officerName);
+  const [localRank, setLocalRank] = useState(settings.officerRank || 'Officer');
+  const [localCodename, setLocalCodename] = useState(settings.officerCodename || '');
 
   // Test voice settings with current configuration
   const testVoiceSettings = async () => {
@@ -43,26 +45,60 @@ export function Settings() {
     await speak(greeting);
   };
 
-  // Save officer name when input is complete
-  const handleNameSave = () => {
+  // Save officer profile when input is complete
+  const handleProfileSave = () => {
     updateOfficerName(localName);
-    if (localName) {
-      speak(`Thank you, I'll remember to call you Officer ${localName}.`);
-      // Store to localStorage as well for redundancy
-      localStorage.setItem('lark-officer-name', localName);
-      // Notify other components about the name change
-      document.dispatchEvent(new CustomEvent('officerNameUpdated', { 
-        detail: { name: localName } 
-      }));
+    updateOfficerRank(localRank);
+    updateOfficerCodename(localCodename);
+    
+    // Construct appropriate greeting using rank and name or codename
+    let greeting = '';
+    if (localCodename) {
+      greeting = `Thank you, I'll remember to call you ${localCodename}.`;
+    } else if (localName) {
+      greeting = `Thank you, I'll remember to call you ${localRank} ${localName}.`;
+    } else {
+      greeting = 'Profile updated successfully.';
     }
+    
+    speak(greeting);
+    
+    // Store to localStorage as well for redundancy
+    localStorage.setItem('lark-officer-name', localName);
+    localStorage.setItem('lark-officer-rank', localRank);
+    localStorage.setItem('lark-officer-codename', localCodename);
+    
+    // Notify other components about the profile update
+    document.dispatchEvent(new CustomEvent('officerProfileUpdated', { 
+      detail: { 
+        name: localName,
+        rank: localRank,
+        codename: localCodename 
+      } 
+    }));
   };
   
-  // Load name from localStorage on component mount
+  // Load profile from localStorage on component mount
   useEffect(() => {
+    // Load name
     const savedName = localStorage.getItem('lark-officer-name');
     if (savedName && savedName !== settings.officerName) {
       setLocalName(savedName);
       updateOfficerName(savedName);
+    }
+    
+    // Load rank
+    const savedRank = localStorage.getItem('lark-officer-rank');
+    if (savedRank && savedRank !== settings.officerRank) {
+      setLocalRank(savedRank);
+      updateOfficerRank(savedRank);
+    }
+    
+    // Load codename
+    const savedCodename = localStorage.getItem('lark-officer-codename');
+    if (savedCodename && savedCodename !== settings.officerCodename) {
+      setLocalCodename(savedCodename);
+      updateOfficerCodename(savedCodename);
     }
   }, []);
 
@@ -97,15 +133,57 @@ export function Settings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="officerName">Name</Label>
-                <Input
-                  id="officerName"
-                  placeholder="Enter your name"
-                  value={localName}
-                  onChange={(e) => setLocalName(e.target.value)}
-                />
-                <Button onClick={handleNameSave}>Save Name</Button>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="officerRank">Rank</Label>
+                  <Select
+                    value={localRank}
+                    onValueChange={setLocalRank}
+                  >
+                    <SelectTrigger id="officerRank" className="w-full">
+                      <SelectValue placeholder="Select your rank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Officer">Officer</SelectItem>
+                      <SelectItem value="Deputy">Deputy</SelectItem>
+                      <SelectItem value="Sergeant">Sergeant</SelectItem>
+                      <SelectItem value="Corporal">Corporal</SelectItem>
+                      <SelectItem value="Detective">Detective</SelectItem>
+                      <SelectItem value="Lieutenant">Lieutenant</SelectItem>
+                      <SelectItem value="Captain">Captain</SelectItem>
+                      <SelectItem value="Chief">Chief</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="officerName">Last Name</Label>
+                  <Input
+                    id="officerName"
+                    placeholder="Enter your last name"
+                    value={localName}
+                    onChange={(e) => setLocalName(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="officerCodename">
+                    Codename (Optional)
+                    <span className="text-xs text-muted-foreground block mt-1">
+                      If provided, LARK will call you this instead of your rank and name
+                    </span>
+                  </Label>
+                  <Input
+                    id="officerCodename"
+                    placeholder="Enter a preferred name"
+                    value={localCodename}
+                    onChange={(e) => setLocalCodename(e.target.value)}
+                  />
+                </div>
+                
+                <Button onClick={handleProfileSave} className="mt-2 w-full">
+                  Save Profile
+                </Button>
               </div>
             </CardContent>
           </Card>

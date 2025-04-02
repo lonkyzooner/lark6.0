@@ -152,7 +152,10 @@ export function LarkChat() {
   }, []);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Use a more controlled scroll with a short delay to prevent jumping
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
   };
 
   // Load messages from IndexedDB and handle online/offline status
@@ -584,10 +587,10 @@ export function LarkChat() {
       {/* Info message */}
       {infoMessage}
       
-      <ScrollArea className="flex-1 p-4 rounded-lg border border-border/30 bg-white/90 shadow-md backdrop-blur-sm">
-        <div className="space-y-6">
+      <ScrollArea className="flex-1 p-4 rounded-lg border border-border/30 bg-white/90 shadow-md backdrop-blur-sm" style={{ height: '450px' }}>
+        <div className="space-y-6" style={{ minHeight: 'calc(100% - 50px)' }}>
           {messageList}
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} style={{ height: '1px', padding: '8px 0' }} />
         </div>
       </ScrollArea>
 

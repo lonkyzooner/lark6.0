@@ -34,7 +34,7 @@ const StatuteDatabase: React.FC<StatuteProps> = ({ statute, description }) => {
       <div className="text-sm font-medium mb-1 text-lark-light-blue">
         {statute}
       </div>
-      <div className="text-xs text-white/90 mb-3">
+      <div className="text-xs text-slate-800 mb-3 font-medium">
         {description}
       </div>
       <button 
@@ -50,10 +50,10 @@ const StatuteDatabase: React.FC<StatuteProps> = ({ statute, description }) => {
       
       {/* Show results if available */}
       {result && (
-        <div className="mt-3 p-2 bg-white/5 rounded text-xs text-white/80">
+        <div className="mt-3 p-2 bg-slate-100 rounded text-xs text-slate-800 border border-slate-200">
           {result}
           {statuteUrl && (
-            <a href={statuteUrl} target="_blank" rel="noopener noreferrer" className="text-lark-light-blue hover:underline flex items-center gap-1 mt-2">
+            <a href={statuteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1 mt-2">
               <small>View Statute</small>
             </a>
           )}

@@ -4,6 +4,8 @@ import { get } from 'idb-keyval';
 
 export interface UserSettings {
   officerName: string;
+  officerRank: string;
+  officerCodename: string;
   wakeWordEnabled: boolean;
   commandCacheEnabled: boolean;
   voicePreferences: {
@@ -30,6 +32,8 @@ export interface UserSettings {
 
 const defaultSettings: UserSettings = {
   officerName: '',
+  officerRank: 'Officer', // Default rank
+  officerCodename: '',     // Custom name for LARK to call the user
   wakeWordEnabled: true,
   commandCacheEnabled: true,
   voicePreferences: {
@@ -99,10 +103,14 @@ export const useSettings = create(
     settings: UserSettings;
     updateSettings: (settings: Partial<UserSettings>) => void;
     updateOfficerName: (name: string) => void;
+    updateOfficerRank: (rank: string) => void;
+    updateOfficerCodename: (codename: string) => void;
     updateVoicePreferences: (prefs: Partial<UserSettings['voicePreferences']>) => void;
     updateOfflineMode: (prefs: Partial<UserSettings['offlineMode']>) => void;
     updateCommandContext: (prefs: Partial<UserSettings['commandContext']>) => void;
     getOfficerName: () => string;
+    getOfficerRank: () => string;
+    getOfficerCodename: () => string;
   }>(
     (set, get) => ({
       settings: defaultSettings,
@@ -129,6 +137,40 @@ export const useSettings = create(
         
         // Then check other storage options
         return getOfficerNameFromAllStorages();
+      },
+      
+      // Update officer rank
+      updateOfficerRank: (rank) => {
+        localStorage.setItem('lark-officer-rank', rank);
+        set((state) => ({
+          settings: { ...state.settings, officerRank: rank },
+        }));
+      },
+      
+      // Get officer rank with localStorage fallback
+      getOfficerRank: () => {
+        const state = get();
+        if (state.settings.officerRank) {
+          return state.settings.officerRank;
+        }
+        return localStorage.getItem('lark-officer-rank') || 'Officer';
+      },
+      
+      // Update officer codename
+      updateOfficerCodename: (codename) => {
+        localStorage.setItem('lark-officer-codename', codename);
+        set((state) => ({
+          settings: { ...state.settings, officerCodename: codename },
+        }));
+      },
+      
+      // Get officer codename with localStorage fallback
+      getOfficerCodename: () => {
+        const state = get();
+        if (state.settings.officerCodename) {
+          return state.settings.officerCodename;
+        }
+        return localStorage.getItem('lark-officer-codename') || '';
       },
       updateVoicePreferences: (prefs) =>
         set((state) => ({
@@ -159,10 +201,14 @@ export const useSettings = create(
         settings: state.settings,
         updateSettings: state.updateSettings,
         updateOfficerName: state.updateOfficerName,
+        updateOfficerRank: state.updateOfficerRank,
+        updateOfficerCodename: state.updateOfficerCodename,
         updateVoicePreferences: state.updateVoicePreferences,
         updateOfflineMode: state.updateOfflineMode,
         updateCommandContext: state.updateCommandContext,
-        getOfficerName: state.getOfficerName
+        getOfficerName: state.getOfficerName,
+        getOfficerRank: state.getOfficerRank,
+        getOfficerCodename: state.getOfficerCodename
       }),
       onRehydrateStorage: (state) => {
         // When store rehydrates, ensure we also set the officer name in localStorage for backup
