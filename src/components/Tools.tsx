@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSimulatedTTS } from '../hooks/useSimulatedTTS.tsx';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { getGeneralKnowledge, getLegalInformation } from '../lib/openai-service';
@@ -366,22 +366,22 @@ export function Tools() {
         <TabsContent value="reports" className="space-y-4 mt-0">
           <Card className="bg-blue-950/10 border-blue-900/30">
             <CardHeader className="pb-2">
-              <CardTitle className="text-blue-300 text-sm flex items-center gap-2">
+              <CardTitle className="text-white text-sm flex items-center gap-2">
                 <FileTextIcon className="h-4 w-4" />
                 Report Dictation
               </CardTitle>
-              <CardDescription className="text-blue-400/70 text-xs">
+              <CardDescription className="text-white/80 text-xs">
                 Convert verbal report to formatted document
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 pb-2">
               <div className="flex items-center justify-between">
-                <div className="text-xs text-blue-300">Dictate your report:</div>
+                <div className="text-xs text-white font-medium">Dictate your report:</div>
                 <Button 
                   size="sm" 
                   variant="outline" 
                   onClick={handleReportRecording}
-                  className={listening ? "bg-red-900/30 text-red-400 border-red-800/50" : "bg-blue-900/30 text-blue-300 border-blue-800/50"}
+                  className={listening ? "bg-red-900/30 text-red-400 border-red-800/50" : "bg-blue-900/30 text-white border-blue-800/50"}
                 >
                   {listening ? (
                     <>
@@ -404,7 +404,7 @@ export function Tools() {
               
               <Textarea 
                 placeholder="Your dictation will appear here... or type manually"
-                className="bg-black/70 border-blue-900/50 min-h-[120px]"
+                className="bg-black/70 border-blue-900/50 min-h-[200px] text-white"
                 value={reportText}
                 onChange={(e) => setReportText(e.target.value)}
               />
@@ -428,13 +428,13 @@ export function Tools() {
               {generatedReport && (
                 <div className="rounded border border-blue-900/50 bg-black/70 p-3 mt-2">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-blue-300 text-sm">Generated Report</h3>
+                    <h3 className="text-white font-medium text-sm">Generated Report</h3>
                     <Badge className="bg-green-900/30 text-green-400 text-xs">
                       <CheckCircleIcon className="h-3 w-3 mr-1" /> Ready
                     </Badge>
                   </div>
-                  <div className="max-h-[300px] overflow-y-auto">
-                    <div className="text-white/90 text-sm whitespace-pre-line">
+                  <div className="max-h-[400px] overflow-y-auto">
+                    <div className="text-white text-sm whitespace-pre-line">
                       {generatedReport}
                     </div>
                   </div>

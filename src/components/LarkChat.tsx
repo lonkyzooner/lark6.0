@@ -587,10 +587,10 @@ export function LarkChat() {
       {/* Info message */}
       {infoMessage}
       
-      <ScrollArea className="flex-1 p-4 rounded-lg border border-border/30 bg-white/90 shadow-md backdrop-blur-sm" style={{ height: '450px' }}>
-        <div className="space-y-6" style={{ minHeight: 'calc(100% - 50px)' }}>
+      <ScrollArea className="flex-1 p-4 rounded-lg border border-border/30 bg-white/90 shadow-md backdrop-blur-sm" style={{ height: '500px', position: 'relative', overflow: 'hidden' }}>
+        <div className="space-y-6" style={{ minHeight: 'calc(100% - 50px)', paddingBottom: '20px' }}>
           {messageList}
-          <div ref={messagesEndRef} style={{ height: '1px', padding: '8px 0' }} />
+          <div ref={messagesEndRef} style={{ height: '10px', padding: '12px 0', margin: '10px 0' }} />
         </div>
       </ScrollArea>
 
