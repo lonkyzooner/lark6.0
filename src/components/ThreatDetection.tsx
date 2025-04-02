@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { MouseEvent } from 'react';
 import { useSimulatedTTS } from '../hooks/useSimulatedTTS';
 import { Button } from './ui/button';
@@ -345,7 +345,7 @@ export function ThreatDetection({ className = '' }: ThreatDetectionProps) {
           }`}>
             <div className="flex items-center gap-3">
               <AlertTriangleIcon 
-                className={`h-6 w-6 ${threatStatus.level === 'normal' ? 'text-green-500' : ''}`} 
+                className={`h-6 w-6 ${threatStatus.level === 'low' ? 'text-green-500' : ''}`} 
               />
               <span className="font-semibold font-mono text-base">
                 LEVEL: {threatStatus.level.toUpperCase()}
@@ -397,28 +397,7 @@ export function ThreatDetection({ className = '' }: ThreatDetectionProps) {
         <div className="space-y-5">
           <h3 className="text-sm font-semibold text-blue-400/80 uppercase tracking-wider font-mono mb-3">Manual Analysis & Control</h3>
 
-          {/* AI Selection Toggle - Using styled buttons */}
-          <div className="flex flex-col items-end gap-2 mb-2">
-            <label className="text-xs text-blue-400/80 font-mono mr-auto">Analysis Engine:</label>
-            <div className="inline-flex rounded-md shadow-sm" role="group">
-              <Button
-                variant={isUsingGroq ? "default" : "outline"}
-                size="sm"
-                onClick={() => {setIsUsingGroq(true); setAssessmentResult(''); setGroqAnalysisResult('');}}
-                className={`text-xs rounded-r-none font-mono ${isUsingGroq ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700 z-10' : 'bg-black/60 border-blue-800/50 text-gray-300 hover:bg-blue-900/30'}`}
-              >
-                <ZapIcon className="h-4 w-4 mr-1.5"/> Groq (Fast)
-              </Button>
-              <Button
-                variant={!isUsingGroq ? "default" : "outline"}
-                size="sm"
-                onClick={() => {setIsUsingGroq(false); setAssessmentResult(''); setGroqAnalysisResult('');}}
-                className={`text-xs rounded-l-none font-mono ${!isUsingGroq ? 'bg-teal-600 hover:bg-teal-700 text-white border-teal-700 z-10' : 'bg-black/60 border-blue-800/50 text-gray-300 hover:bg-blue-900/30'}`}
-              >
-                 OpenAI (GPT)
-              </Button>
-            </div>
-           </div>
+          {/* AI Selection Toggle has been removed as requested */}
 
           {/* Manual Situation Input */}
           <div className="p-4 rounded-md border border-blue-900/40 bg-black/60">

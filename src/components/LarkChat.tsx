@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useContext, useMemo, memo } from 'react';
 import VoiceContext from '../contexts/VoiceContext';
 import LiveKitVoiceContext from '../contexts/LiveKitVoiceContext';
+import { useSettings } from '../lib/settings-store';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
 import { Input } from './ui/input';
@@ -91,6 +92,7 @@ const MessageBubble = memo(({ message, onSpeakText }: { message: Message, onSpea
 export function LarkChat() {
   const voice = useContext(VoiceContext);
   const liveKitVoice = useContext(LiveKitVoiceContext);
+  const { getOfficerName, getOfficerRank, getOfficerCodename } = useSettings();
   const [messages, setMessages] = useState<Message[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null); // Add info message state
@@ -168,10 +170,25 @@ export function LarkChat() {
         
         if (savedMessages.length === 0) {
           console.log('No messages found, adding welcome message');
+          
+          // Get officer details from settings
+          const officerName = getOfficerName();
+          const officerRank = getOfficerRank();
+          const officerCodename = getOfficerCodename();
+          
+          // Personalize welcome message if officer details are available
+          let welcomeContent = "Hello! I'm LARK, your law enforcement assistant. How can I help you today?";
+          
+          if (officerCodename) {
+            welcomeContent = `Hello ${officerCodename}! I'm LARK, your law enforcement assistant. How can I help you today?`;
+          } else if (officerName) {
+            welcomeContent = `Hello ${officerRank} ${officerName}! I'm LARK, your law enforcement assistant. How can I help you today?`;
+          }
+          
           // Add welcome message if no messages exist
           const welcomeMessage: Message = {
             role: 'assistant',
-            content: "Hello! I'm LARK, your law enforcement assistant. How can I help you today?",
+            content: welcomeContent,
             timestamp: Date.now()
           };
 
