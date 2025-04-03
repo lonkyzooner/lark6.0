@@ -3,9 +3,21 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "functions": {
+    "api/*.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "routes": [
+    { "src": "/api/auth/(.*)", "dest": "/api/auth.js" },
+    { "src": "/api/subscription/(.*)", "dest": "/api/subscription.js" },
+    { "src": "/api/webhook", "dest": "/api/stripe-webhook.js" },
+    { "src": "/api/livekit/(.*)", "dest": "/api/livekit.js" },
+    { "src": "/api/openai/(.*)", "dest": "/api/openai.js" },
+    { "src": "/api/reports/(.*)", "dest": "/api/reports.js" },
+    { "src": "/api/(.*)", "dest": "/api/$1.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [
     {
@@ -38,6 +50,10 @@
         "distDir": "dist",
         "zeroConfig": true
       }
+    },
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
     }
   ]
 }
