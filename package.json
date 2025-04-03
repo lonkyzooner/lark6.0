@@ -10,7 +10,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node server.js"
+    "start": "node server.js",
+    "vercel-build": "vite build"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.3.0",
