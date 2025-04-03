@@ -762,7 +762,7 @@ export const LarkChat: React.FC = () => {
                       <div className="relative">
                         <Mic className="h-5 w-5 text-[#002166] relative z-10" />
                       </div>
-                    )
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
