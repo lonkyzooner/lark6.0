@@ -1,0 +1,232 @@
+/* Mobile Optimizations for LARK */
+
+/* Base mobile adjustments */
+@media (max-width: 768px) {
+  /* Reduce padding on main container */
+  .min-h-screen {
+    padding: 0.5rem !important;
+  }
+  
+  /* Adjust header for mobile */
+  header.enhanced-header {
+    padding: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  /* Optimize header content */
+  header .flex-col {
+    gap: 0.5rem !important;
+  }
+  
+  /* Make logo smaller on mobile */
+  header .relative.group svg {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  /* Adjust heading text size */
+  header h1.text-3xl {
+    font-size: 1.5rem !important;
+  }
+  
+  /* Optimize status indicators */
+  header .flex-wrap {
+    justify-content: center !important;
+    margin-top: 0.5rem !important;
+  }
+  
+  /* Make status pills more compact */
+  header .rounded-full {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.75rem !important;
+  }
+  
+  /* Optimize tab navigation */
+  .TabsList {
+    padding: 0.25rem !important;
+    gap: 0.125rem !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 50 !important;
+    border-radius: 0 !important;
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+  }
+  
+  /* Make tab triggers more touch-friendly */
+  .TabsTrigger {
+    min-height: 3rem !important;
+    padding: 0.5rem 0.25rem !important;
+  }
+  
+  /* Hide tab text on very small screens, show only icons */
+  @media (max-width: 380px) {
+    .TabsTrigger span {
+      display: none !important;
+    }
+    
+    .TabsTrigger div.bg-white\/30 {
+      margin: 0 auto !important;
+    }
+  }
+  
+  /* Adjust card content for mobile */
+  .fluid-card {
+    padding: 0.75rem !important;
+    margin-bottom: 4rem !important; /* Space for fixed tabs */
+  }
+  
+  /* Make warning messages more compact */
+  .api-key-warning {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Optimize form inputs for mobile */
+  input, textarea, select {
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
+  }
+  
+  /* Adjust buttons for better touch targets */
+  button {
+    min-height: 2.5rem !important;
+  }
+  
+  /* Fix scrolling issues */
+  .ScrollArea {
+    max-height: calc(100vh - 14rem) !important;
+  }
+  
+  /* Optimize voice assistant panel */
+  .voice-assistant-container {
+    bottom: 4.5rem !important; /* Position above tabs */
+    right: 0.5rem !important;
+  }
+  
+  /* Make cards take full width on mobile */
+  .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Adjust spacing for mobile */
+  .space-y-6 {
+    margin-top: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  /* Fix footer positioning */
+  footer {
+    margin-bottom: 3.5rem !important;
+    padding-top: 1rem !important;
+  }
+}
+
+/* iPhone SE and other small devices */
+@media (max-width: 375px) {
+  /* Further reduce padding */
+  .min-h-screen {
+    padding: 0.25rem !important;
+  }
+  
+  /* Stack header elements vertically */
+  header .flex-col {
+    align-items: center !important;
+  }
+  
+  /* Make status indicators stack */
+  header .flex-wrap {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Simplify tab navigation */
+  .TabsTrigger {
+    padding: 0.375rem !important;
+  }
+}
+
+/* Fix for notched iPhones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .TabsList {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)) !important;
+  }
+  
+  footer {
+    margin-bottom: calc(3.5rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Touch optimizations */
+@media (hover: none) {
+  /* Increase touch targets */
+  button, a, .TabsTrigger, [role="button"] {
+    min-height: 44px !important; /* Apple's recommended minimum */
+  }
+  
+  /* Remove hover effects that don't make sense on touch */
+  .hover\:scale-105, .hover\:shadow-xl, .hover\:bg-white\/90 {
+    transform: none !important;
+    box-shadow: none !important;
+    background: inherit !important;
+  }
+  
+  /* Add active state feedback for touch */
+  button:active, a:active, .TabsTrigger:active, [role="button"]:active {
+    transform: scale(0.98) !important;
+    transition: transform 0.1s !important;
+  }
+}
+
+/* Optimize for landscape mode */
+@media (max-width: 896px) and (orientation: landscape) {
+  /* Adjust layout for landscape */
+  .min-h-screen {
+    min-height: 100% !important;
+  }
+  
+  /* Make header more compact */
+  header {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+  }
+  
+  /* Adjust tab navigation */
+  .TabsList {
+    position: sticky !important;
+    bottom: auto !important;
+  }
+  
+  /* Adjust content area */
+  .fluid-card {
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Fix footer */
+  footer {
+    margin-bottom: 1rem !important;
+  }
+}
+
+/* Fix for iOS Safari issues */
+@supports (-webkit-touch-callout: none) {
+  /* Fix for iOS momentum scrolling */
+  .ScrollArea {
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Fix for iOS input zoom */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Fix for iOS button styling */
+  button {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+}

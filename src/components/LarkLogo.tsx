@@ -4,58 +4,69 @@ interface LarkLogoProps {
   width?: number;
   height?: number;
   className?: string;
+  showText?: boolean;
 }
 
 /**
  * LARK Logo component
- * Displays the LARK (Law Enforcement Assistance and Response Kit) logo
+ * Displays the LARK (Law Enforcement Assistance and Response Kit) logo with a polar bear
  */
-const LarkLogo: React.FC<LarkLogoProps> = ({ 
-  width = 200, 
-  height = 100,
-  className = ''
+const LarkLogo: React.FC<LarkLogoProps> = ({
+  width = 200,
+  height = 200,
+  className = '',
+  showText = true
 }) => {
   return (
     <div className={`lark-logo ${className}`}>
-      <svg 
-        width={width} 
-        height={height} 
-        viewBox="0 0 800 400" 
-        fill="none" 
+      <svg
+        width={width}
+        height={height}
+        viewBox="0 0 400 400"
+        fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <path 
-          d="M123.5 365C123.5 365 42 365 42 365C42 365 42 283.5 42 283.5C42 283.5 123.5 283.5 123.5 283.5M123.5 283.5C123.5 283.5 205 283.5 205 283.5C205 283.5 205 202 205 202M205 202C205 202 286.5 202 286.5 202C286.5 202 286.5 120.5 286.5 120.5M286.5 120.5C286.5 120.5 368 120.5 368 120.5C368 120.5 368 39 368 39M368 39C368 39 449.5 39 449.5 39C449.5 39 449.5 120.5 449.5 120.5M449.5 120.5C449.5 120.5 531 120.5 531 120.5C531 120.5 531 202 531 202M531 202C531 202 612.5 202 612.5 202C612.5 202 612.5 283.5 612.5 283.5M612.5 283.5C612.5 283.5 694 283.5 694 283.5C694 283.5 694 365 694 365C694 365 612.5 365 612.5 365M612.5 365C612.5 365 531 365 531 365C531 365 531 283.5 531 283.5M531 283.5C531 283.5 449.5 283.5 449.5 283.5C449.5 283.5 449.5 202 449.5 202M449.5 202C449.5 202 368 202 368 202C368 202 368 120.5 368 120.5M368 120.5C368 120.5 286.5 120.5 286.5 120.5M286.5 120.5C286.5 120.5 205 120.5 205 120.5C205 120.5 205 202 205 202M205 202C205 202 123.5 202 123.5 202C123.5 202 123.5 283.5 123.5 283.5" 
-          stroke="currentColor" 
-          strokeWidth="24" 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-        />
-        <circle cx="368" cy="120.5" r="10" fill="currentColor" />
-        <path 
-          d="M450 120L450 365" 
-          stroke="currentColor" 
-          strokeWidth="24" 
-          strokeLinecap="round"
-        />
-        <path 
-          d="M530 200L700 200" 
-          stroke="currentColor" 
-          strokeWidth="24" 
-          strokeLinecap="round"
-        />
-        <path 
-          d="M530 280L700 280" 
-          stroke="currentColor" 
-          strokeWidth="24" 
-          strokeLinecap="round"
-        />
-        <path 
-          d="M530 360L700 360" 
-          stroke="currentColor" 
-          strokeWidth="24" 
-          strokeLinecap="round"
-        />
+        {/* Background */}
+        <rect width="400" height="400" rx="20" fill="#7FB3D5" />
+
+        {/* Polar Bear */}
+        <g transform="translate(50, 40) scale(0.8)">
+          {/* Body */}
+          <path d="M240 220C240 180 200 150 150 150C100 150 60 180 60 220L60 280L240 280L240 220Z" fill="#1A2A3A" />
+          <path d="M250 100C250 155.228 205.228 200 150 200C94.7715 200 50 155.228 50 100C50 44.7715 94.7715 0 150 0C205.228 0 250 44.7715 250 100Z" fill="white" />
+
+          {/* Head */}
+          <path d="M150 40C177.614 40 200 62.3858 200 90C200 117.614 177.614 140 150 140C122.386 140 100 117.614 100 90C100 62.3858 122.386 40 150 40Z" fill="white" />
+
+          {/* Ears */}
+          <circle cx="110" cy="60" r="15" fill="white" />
+          <circle cx="190" cy="60" r="15" fill="white" />
+
+          {/* Eyes */}
+          <circle cx="130" cy="85" r="5" fill="black" />
+          <circle cx="170" cy="85" r="5" fill="black" />
+
+          {/* Nose */}
+          <path d="M150 95C156.075 95 161 99.9249 161 106C161 112.075 156.075 117 150 117C143.925 117 139 112.075 139 106C139 99.9249 143.925 95 150 95Z" fill="black" />
+
+          {/* Legs */}
+          <rect x="80" y="280" width="30" height="40" rx="10" fill="white" />
+          <rect x="190" y="280" width="30" height="40" rx="10" fill="white" />
+
+          {/* Arms */}
+          <rect x="60" y="180" width="25" height="60" rx="10" fill="white" />
+          <rect x="215" y="180" width="25" height="60" rx="10" fill="white" />
+        </g>
+
+        {/* LARK Text */}
+        {showText && (
+          <g transform="translate(100, 330)">
+            <path d="M20 0H0V60H20V0Z" fill="white" />
+            <path d="M30 0H50V60H70V40H90V20H70V0H30V20H50V40H30V0Z" fill="white" />
+            <path d="M100 0H120V40H140V20H160V40H180V0H200V60H100V0Z" fill="white" />
+            <path d="M210 0H230V20H250V0H270V60H250V40H230V60H210V0Z" fill="white" />
+          </g>
+        )}
       </svg>
     </div>
   );

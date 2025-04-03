@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#7FB3D5" />
+  
+  <!-- Polar Bear Logo -->
+  <g transform="translate(100, 115) scale(1.5)">
+    <!-- Body -->
+    <path d="M240 220C240 180 200 150 150 150C100 150 60 180 60 220L60 280L240 280L240 220Z" fill="#1A2A3A" />
+    <path d="M250 100C250 155.228 205.228 200 150 200C94.7715 200 50 155.228 50 100C50 44.7715 94.7715 0 150 0C205.228 0 250 44.7715 250 100Z" fill="white" />
+    
+    <!-- Head -->
+    <path d="M150 40C177.614 40 200 62.3858 200 90C200 117.614 177.614 140 150 140C122.386 140 100 117.614 100 90C100 62.3858 122.386 40 150 40Z" fill="white" />
+    
+    <!-- Ears -->
+    <circle cx="110" cy="60" r="15" fill="white" />
+    <circle cx="190" cy="60" r="15" fill="white" />
+    
+    <!-- Eyes -->
+    <circle cx="130" cy="85" r="5" fill="black" />
+    <circle cx="170" cy="85" r="5" fill="black" />
+    
+    <!-- Nose -->
+    <path d="M150 95C156.075 95 161 99.9249 161 106C161 112.075 156.075 117 150 117C143.925 117 139 112.075 139 106C139 99.9249 143.925 95 150 95Z" fill="black" />
+    
+    <!-- Legs -->
+    <rect x="80" y="280" width="30" height="40" rx="10" fill="white" />
+    <rect x="190" y="280" width="30" height="40" rx="10" fill="white" />
+    
+    <!-- Arms -->
+    <rect x="60" y="180" width="25" height="60" rx="10" fill="white" />
+    <rect x="215" y="180" width="25" height="60" rx="10" fill="white" />
+  </g>
+  
+  <!-- LARK Text -->
+  <g transform="translate(450, 250)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-weight="bold" font-size="120" fill="white">LARK</text>
+    <text x="0" y="100" font-family="Arial, sans-serif" font-size="48" fill="white">Law Enforcement Assistance &amp; Response Kit</text>
+  </g>
+  
+  <!-- Badge -->
+  <g transform="translate(900, 200) scale(0.8)">
+    <!-- Badge Background -->
+    <path d="M256 16C128.85 16 25.6 119.25 25.6 246.4C25.6 373.55 128.85 476.8 256 476.8C383.15 476.8 486.4 373.55 486.4 246.4C486.4 119.25 383.15 16 256 16Z" fill="#002166"/>
+    
+    <!-- Badge Shield -->
+    <path d="M256 96C204.8 96 163.2 137.6 163.2 188.8V284.8C163.2 298.24 174.16 309.2 187.6 309.2H324.4C337.84 309.2 348.8 298.24 348.8 284.8V188.8C348.8 137.6 307.2 96 256 96Z" fill="#0046C7"/>
+    
+    <!-- Badge Star -->
+    <path d="M256 128L279.04 198.4H353.28L293.12 242.4L316.16 312.8L256 268.8L195.84 312.8L218.88 242.4L158.72 198.4H232.96L256 128Z" fill="#FFD700"/>
+    
+    <!-- Badge Outline -->
+    <circle cx="256" cy="246.4" r="180" stroke="#FFD700" stroke-width="8" fill="none"/>
+  </g>
+</svg>

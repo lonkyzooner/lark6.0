@@ -11,7 +11,7 @@ export function VoiceIndicator() {
       setIsActive(true);
       setTranscript(event.detail.transcript);
       setConfidence(event.detail.confidence || 0);
-      
+
       // Show the indicator for 3 seconds
       setTimeout(() => {
         setIsActive(false);
@@ -22,7 +22,7 @@ export function VoiceIndicator() {
     const handleInterimTranscript = (event: CustomEvent) => {
       setIsActive(true);
       setTranscript(event.detail.transcript);
-      
+
       // Show the indicator for 2 seconds
       setTimeout(() => {
         setIsActive(false);
@@ -32,7 +32,7 @@ export function VoiceIndicator() {
     // Add event listeners
     window.addEventListener('lark-audio-detected', handleAudioDetected as EventListener);
     window.addEventListener('lark-interim-transcript', handleInterimTranscript as EventListener);
-    
+
     // Clean up
     return () => {
       window.removeEventListener('lark-audio-detected', handleAudioDetected as EventListener);
@@ -43,18 +43,19 @@ export function VoiceIndicator() {
   if (!isActive) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 
-                    bg-blue-600/90 text-white px-4 py-2 rounded-full 
-                    shadow-lg flex items-center gap-2 animate-fadeIn">
+    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50
+                    bg-gradient-to-r from-[#002166] to-[#0046c7] text-white px-5 py-3 rounded-full
+                    shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/20 backdrop-blur-md">
       <div className="relative">
         <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-75"></div>
-        <div className="relative h-3 w-3 bg-blue-300 rounded-full"></div>
+        <div className="absolute inset-0 bg-blue-300 rounded-full animate-pulse opacity-50"></div>
+        <div className="relative h-4 w-4 bg-blue-200 rounded-full"></div>
       </div>
-      <div className="text-sm font-medium">
+      <div className="text-sm font-medium tracking-wide">
         {transcript ? `Heard: "${transcript}"` : "Voice detected"}
       </div>
       {confidence > 0 && (
-        <div className="text-xs bg-blue-700/50 px-2 py-0.5 rounded-full">
+        <div className="text-xs bg-white/20 px-2 py-1 rounded-full font-medium">
           {Math.round(confidence * 100)}%
         </div>
       )}

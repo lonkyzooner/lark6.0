@@ -1,29 +1,36 @@
-/* Modern Fluid Theme for LARK UI
-   Inspired by Evoke Studio design with flowing elements */
+/* Enhanced Fluid Theme for LARK UI 2.0
+   Professional law enforcement design with modern elements */
 
 :root {
-  --evoke-light-blue: #e9f2f9;
-  --evoke-accent-gold: #d9c08c;
-  --evoke-dark-blue: #003087;
-  --evoke-text: #222222;
+  /* Core palette */
+  --evoke-light-blue: #edf5fc;
+  --evoke-accent-gold: #e6c87d;
+  --evoke-dark-blue: #002166;
+  --evoke-navy: #001845;
+  --evoke-text: #1a1a2e;
   --evoke-white: #ffffff;
+  --evoke-success: #38b48b;
+  --evoke-warning: #f9a826;
+  --evoke-error: #e63946;
+  --evoke-info: #3a86ff;
 }
 
-/* Override the default theme colors with our fluid theme */
+/* Override the default theme colors with our enhanced fluid theme */
 :root {
-  --background: 210 40% 96%;
+  --background: 210 45% 98%;
   --card: 0 0% 100%;
-  --primary: 213 94% 26%;
+  --primary: 215 94% 20%;
   --secondary: 213 70% 95%;
-  --law-enforcement-blue: #003087;
+  --law-enforcement-blue: #002166;
+  --law-enforcement-accent: #0046c7;
 }
 
-/* Apply fluid design to the entire application */
+/* Apply enhanced fluid design to the entire application */
 body {
   background-color: var(--evoke-light-blue);
-  background-image: linear-gradient(135deg, #e9f2f9 0%, #d1e6f9 100%);
+  background-image: linear-gradient(145deg, #edf5fc 0%, #d1e6f9 100%);
   min-height: 100vh;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--evoke-text);
 }
 
@@ -31,7 +38,8 @@ body {
   background: var(--evoke-light-blue);
   position: relative;
   overflow: hidden;
-  background-image: linear-gradient(135deg, #e9f2f9 0%, #d1e6f9 100%);
+  background-image: linear-gradient(145deg, #edf5fc 0%, #d1e6f9 100%);
+  transition: background-color 0.5s ease;
 }
 
 .fluid-background::before {
@@ -47,23 +55,29 @@ body {
 }
 
 .fluid-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 10px 30px rgba(0, 48, 135, 0.08);
-  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 30px rgba(0, 33, 102, 0.08), 0 4px 8px rgba(0, 33, 102, 0.04);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
+  transform-origin: center center;
 }
 
-/* Apply fluid card design to all cards in the application */
+/* Apply enhanced fluid card design to all cards in the application */
 .bg-card, [class*="bg-card"] {
-  background: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(12px) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(16px) !important;
   border-radius: 16px !important;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
-  box-shadow: 0 10px 30px rgba(0, 48, 135, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 10px 30px rgba(0, 33, 102, 0.08) !important, 0 4px 8px rgba(0, 33, 102, 0.04) !important;
+}
+
+.fluid-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(0, 33, 102, 0.12), 0 6px 12px rgba(0, 33, 102, 0.06);
 }
 
 .fluid-card::after {
@@ -93,7 +107,7 @@ body {
 }
 
 .fluid-button {
-  background: var(--evoke-dark-blue);
+  background: linear-gradient(135deg, var(--evoke-dark-blue) 0%, var(--law-enforcement-accent) 100%);
   color: white;
   border: none;
   border-radius: 100px;
@@ -101,19 +115,25 @@ body {
   font-weight: 600;
   font-size: 0.9rem;
   letter-spacing: -0.01em;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
   z-index: 1;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 33, 102, 0.15), 0 2px 4px rgba(0, 33, 102, 0.1);
 }
 
-/* Apply fluid button styling to all buttons */
+/* Apply enhanced fluid button styling to all buttons */
 button, .btn, [class*="btn-"], [role="button"] {
   border-radius: 100px !important;
-  transition: all 0.3s ease !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   font-weight: 600 !important;
   letter-spacing: -0.01em !important;
+}
+
+.fluid-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 33, 102, 0.2), 0 3px 6px rgba(0, 33, 102, 0.12);
+  background: linear-gradient(135deg, var(--law-enforcement-accent) 0%, var(--evoke-dark-blue) 100%);
 }
 
 .fluid-button::before {
@@ -214,21 +234,70 @@ button, .btn, [class*="btn-"], [role="button"] {
   opacity: 0.8;
 }
 
-/* Glassy container for components */
+/* Enhanced glassy container for components */
 .fluid-glass {
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 30px rgba(0, 48, 135, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 33, 102, 0.08), 0 4px 8px rgba(0, 33, 102, 0.05);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Badge with fluid design */
+.fluid-glass:hover {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 33, 102, 0.12), 0 6px 12px rgba(0, 33, 102, 0.08);
+}
+
+/* Badge with enhanced fluid design */
 .fluid-badge {
-  background: linear-gradient(135deg, #003087 0%, #0055cc 100%);
+  background: linear-gradient(135deg, var(--evoke-dark-blue) 0%, var(--law-enforcement-accent) 100%);
   color: white;
   font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 33, 102, 0.15);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Add decorative wave elements */
+.fluid-wave {
+  position: fixed;
+  top: 30%;
+  left: -5%;
+  width: 110%;
+  height: 800px;
+  background: linear-gradient(180deg, rgba(209, 230, 249, 0) 0%, rgba(209, 230, 249, 0.8) 100%);
+  border-radius: 50%;
+  transform: rotate(-6deg);
+  z-index: -1;
+  opacity: 0.6;
+  animation: wave-float 20s ease-in-out infinite alternate;
+}
+
+.fluid-wave-gold {
+  position: fixed;
+  bottom: -10%;
+  right: -10%;
+  width: 70%;
+  height: 400px;
+  background: linear-gradient(180deg, rgba(230, 200, 125, 0) 0%, rgba(230, 200, 125, 0.15) 100%);
+  border-radius: 40%;
+  transform: rotate(10deg);
+  z-index: -1;
+  opacity: 0.5;
+  animation: wave-float-reverse 25s ease-in-out infinite alternate;
+}
+
+@keyframes wave-float {
+  0% { transform: rotate(-6deg) translateY(0); }
+  50% { transform: rotate(-5deg) translateY(-20px); }
+  100% { transform: rotate(-7deg) translateY(0); }
+}
+
+@keyframes wave-float-reverse {
+  0% { transform: rotate(10deg) translateY(0); }
+  50% { transform: rotate(12deg) translateY(-15px); }
+  100% { transform: rotate(8deg) translateY(0); }
 }

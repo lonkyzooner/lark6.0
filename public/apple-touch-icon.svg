@@ -1,17 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Badge Background -->
-  <path d="M256 16C128.85 16 25.6 119.25 25.6 246.4C25.6 373.55 128.85 476.8 256 476.8C383.15 476.8 486.4 373.55 486.4 246.4C486.4 119.25 383.15 16 256 16Z" fill="#003087"/>
-  
-  <!-- Badge Star -->
-  <path d="M255.5 56L287.07 150.493H388.11L307.02 208.514L338.59 303.007L255.5 244.986L172.41 303.007L203.98 208.514L122.89 150.493H223.93L255.5 56Z" fill="#FFD700"/>
-  
-  <!-- Inner Circle -->
-  <circle cx="255.5" cy="246.5" r="160" fill="#003087" stroke="#FFD700" stroke-width="6"/>
-  
-  <!-- Badge Shield -->
-  <path d="M255.5 126.5C235.5 146.5 215.5 156.5 175.5 156.5V236.5C175.5 316.5 255.5 356.5 255.5 356.5C255.5 356.5 335.5 316.5 335.5 236.5V156.5C295.5 156.5 275.5 146.5 255.5 126.5Z" fill="#003087" stroke="#FFD700" stroke-width="4"/>
-  
-  <!-- "LARK" Text -->
-  <text x="255.5" y="246.5" font-family="Arial, sans-serif" font-weight="bold" font-size="48" text-anchor="middle" fill="#FFD700">LARK</text>
+  <!-- Background -->
+  <rect width="512" height="512" rx="128" fill="#7FB3D5" />
+
+  <!-- Polar Bear -->
+  <g transform="translate(106, 56) scale(1.2)">
+    <!-- Body -->
+    <path d="M240 220C240 180 200 150 150 150C100 150 60 180 60 220L60 280L240 280L240 220Z" fill="#1A2A3A" />
+    <path d="M250 100C250 155.228 205.228 200 150 200C94.7715 200 50 155.228 50 100C50 44.7715 94.7715 0 150 0C205.228 0 250 44.7715 250 100Z" fill="white" />
+
+    <!-- Head -->
+    <path d="M150 40C177.614 40 200 62.3858 200 90C200 117.614 177.614 140 150 140C122.386 140 100 117.614 100 90C100 62.3858 122.386 40 150 40Z" fill="white" />
+
+    <!-- Ears -->
+    <circle cx="110" cy="60" r="15" fill="white" />
+    <circle cx="190" cy="60" r="15" fill="white" />
+
+    <!-- Eyes -->
+    <circle cx="130" cy="85" r="5" fill="black" />
+    <circle cx="170" cy="85" r="5" fill="black" />
+
+    <!-- Nose -->
+    <path d="M150 95C156.075 95 161 99.9249 161 106C161 112.075 156.075 117 150 117C143.925 117 139 112.075 139 106C139 99.9249 143.925 95 150 95Z" fill="black" />
+
+    <!-- Legs -->
+    <rect x="80" y="280" width="30" height="40" rx="10" fill="white" />
+    <rect x="190" y="280" width="30" height="40" rx="10" fill="white" />
+
+    <!-- Arms -->
+    <rect x="60" y="180" width="25" height="60" rx="10" fill="white" />
+    <rect x="215" y="180" width="25" height="60" rx="10" fill="white" />
+  </g>
+
+  <!-- LARK Text -->
+  <g transform="translate(156, 400) scale(1.2)">
+    <path d="M20 0H0V40H20V0Z" fill="white" />
+    <path d="M30 0H50V40H70V26.67H90V13.33H70V0H30V13.33H50V26.67H30V0Z" fill="white" />
+    <path d="M100 0H120V26.67H140V13.33H160V26.67H180V0H200V40H100V0Z" fill="white" />
+    <path d="M210 0H230V13.33H250V0H270V40H250V26.67H230V40H210V0Z" fill="white" />
+  </g>
 </svg>

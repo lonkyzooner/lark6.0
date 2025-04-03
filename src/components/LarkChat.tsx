@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useContext, useMemo, memo } from 'react';
+import '../styles/chat-fix.css';
 import VoiceContext from '../contexts/VoiceContext';
 import LiveKitVoiceContext from '../contexts/LiveKitVoiceContext';
 import { useSettings } from '../lib/settings-store';
@@ -36,28 +37,28 @@ const MessageBubble = memo(({ message, onSpeakText }: { message: Message, onSpea
     >
       {message.role === 'assistant' && (
         <div className="flex-shrink-0 mr-3">
-          <div className="w-10 h-10 rounded-full bg-[#003087] flex items-center justify-center text-white font-semibold shadow-md ring-2 ring-white/30">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#002166] to-[#0046c7] flex items-center justify-center text-white font-semibold shadow-md ring-2 ring-white/50 transform transition-all duration-300 hover:scale-105">
             L
           </div>
         </div>
       )}
       <div
-        className={`max-w-[85%] px-5 py-4 rounded-2xl shadow-md ${
+        className={`max-w-[85%] px-5 py-4 rounded-2xl shadow-lg ${
           message.role === 'user'
-            ? 'bg-gradient-to-br from-[#003087] to-[#004db3] text-white rounded-tr-none border border-blue-400/20'
-            : 'bg-white/90 text-gray-800 rounded-tl-none border border-gray-200/50 backdrop-blur-sm'
+            ? 'bg-gradient-to-br from-[#002166] to-[#0046c7] text-white rounded-tr-none border border-blue-400/20 hover:shadow-blue-200/20 hover:shadow-xl transition-all duration-300'
+            : 'bg-white/95 text-gray-800 rounded-tl-none border border-gray-200/50 backdrop-blur-lg hover:shadow-xl transition-all duration-300'
         }`}
       >
         <div className="whitespace-pre-wrap text-[15px]">{message.content}</div>
-        
+
         <div className={`mt-2 flex ${message.role === 'assistant' ? 'justify-between' : 'justify-end'}`}>
           <span className="text-xs opacity-70">{formattedTime}</span>
-          
+
           {message.role === 'assistant' && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button 
+                  <button
                     onClick={() => onSpeakText(message.content)}
                     className="text-xs flex items-center bg-white/80 hover:bg-white px-2 py-1 rounded-full shadow-sm transition-colors border border-gray-200/50"
                   >
@@ -73,7 +74,7 @@ const MessageBubble = memo(({ message, onSpeakText }: { message: Message, onSpea
           )}
         </div>
       </div>
-      
+
       {message.role === 'user' && (
         <div className="flex-shrink-0 ml-3">
           <div className="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-800 font-semibold shadow-sm">
@@ -85,11 +86,11 @@ const MessageBubble = memo(({ message, onSpeakText }: { message: Message, onSpea
   );
 }, (prevProps, nextProps) => {
   // Only re-render if the message content or timestamp changes
-  return prevProps.message.content === nextProps.message.content && 
+  return prevProps.message.content === nextProps.message.content &&
          prevProps.message.timestamp === nextProps.message.timestamp;
 });
 
-export function LarkChat() {
+export const LarkChat: React.FC = () => {
   const voice = useContext(VoiceContext);
   const liveKitVoice = useContext(LiveKitVoiceContext);
   const { getOfficerName, getOfficerRank, getOfficerCodename } = useSettings();
@@ -110,22 +111,22 @@ export function LarkChat() {
     const initializeChat = async () => {
       try {
         console.log('Initializing OpenAI chat model...');
-        
+
         // Set initialized to true regardless of outcome to allow offline functionality
         setIsInitialized(true);
-        
+
         if (!OPENAI_API_KEY) {
           console.error('OpenAI API key is missing. Please check your environment variables.');
           setError('API key configuration is missing. Using offline mode only.');
           return;
         }
-        
+
         try {
           // Test the OpenAI connection with a simple request
           console.log('Testing connection to OpenAI API...');
           try {
             const testResponse = await queryOpenAI('Test connection');
-            
+
             if (testResponse && !testResponse.includes('Unable to process')) {
               console.log('Successfully connected to OpenAI API');
               chatRef.current = { initialized: true };
@@ -154,10 +155,10 @@ export function LarkChat() {
   }, []);
 
   const scrollToBottom = () => {
-    // Use a more controlled scroll with a short delay to prevent jumping
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 50);
+    // Use a more controlled scroll with requestAnimationFrame for better timing
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
   };
 
   // Load messages from IndexedDB and handle online/offline status
@@ -167,24 +168,24 @@ export function LarkChat() {
         console.log('Loading messages from database...');
         const savedMessages = await getMessages();
         console.log(`Loaded ${savedMessages.length} messages`);
-        
+
         if (savedMessages.length === 0) {
           console.log('No messages found, adding welcome message');
-          
+
           // Get officer details from settings
           const officerName = getOfficerName();
           const officerRank = getOfficerRank();
           const officerCodename = getOfficerCodename();
-          
+
           // Personalize welcome message if officer details are available
           let welcomeContent = "Hello! I'm LARK, your law enforcement assistant. How can I help you today?";
-          
+
           if (officerCodename) {
             welcomeContent = `Hello ${officerCodename}! I'm LARK, your law enforcement assistant. How can I help you today?`;
           } else if (officerName) {
             welcomeContent = `Hello ${officerRank} ${officerName}! I'm LARK, your law enforcement assistant. How can I help you today?`;
           }
-          
+
           // Add welcome message if no messages exist
           const welcomeMessage: Message = {
             role: 'assistant',
@@ -275,7 +276,7 @@ export function LarkChat() {
       }
 
       setError(errorMessage);
-      
+
       // Auto-clear error after 5 seconds
       setTimeout(() => setError(null), 5000);
     };
@@ -285,15 +286,46 @@ export function LarkChat() {
   }, [voice.transcript]);
 
   useEffect(() => {
-    scrollToBottom();
+    // Ensure scroll happens after DOM update is complete
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
   }, [messages]);
+
+  // Add resize observer to handle window resizing
+  useEffect(() => {
+    const handleResize = () => {
+      // Delay scroll to bottom slightly to allow layout to settle
+      setTimeout(scrollToBottom, 100);
+    };
+
+    // Create a ResizeObserver to detect container size changes
+    if (typeof ResizeObserver !== 'undefined') {
+      const resizeObserver = new ResizeObserver(handleResize);
+      const container = document.querySelector('.chat-container');
+      if (container) {
+        resizeObserver.observe(container);
+      }
+
+      return () => {
+        if (container) {
+          resizeObserver.unobserve(container);
+        }
+        resizeObserver.disconnect();
+      };
+    } else {
+      // Fallback for browsers without ResizeObserver
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
 
   // Set up subscription to voice synthesis service speaking state
   useEffect(() => {
     // Use the LiveKitVoiceContext's isSpeaking state directly
     setIsSpeaking(liveKitVoice.isSpeaking);
   }, [liveKitVoice.isSpeaking]);
-  
+
   // Use LiveKitVoiceContext for stopping speech
   const stopSpeaking = () => {
     if (isSpeaking) {
@@ -311,9 +343,9 @@ export function LarkChat() {
 
       stopSpeaking();
       setIsSpeaking(true); // Set speaking state to true immediately
-      
+
       console.log('[LarkChat] Requesting speech synthesis for text:', text.substring(0, 30) + (text.length > 30 ? '...' : ''));
-      
+
       try {
         // First try with regular speak method which will automatically fall back if needed
         await liveKitVoice.speak(text, 'ash');
@@ -329,7 +361,7 @@ export function LarkChat() {
           return;
         }
       }
-      
+
       // Monitor speaking state
       const checkSpeakingInterval = setInterval(() => {
         if (!liveKitVoice.isSpeaking) {
@@ -337,13 +369,13 @@ export function LarkChat() {
           clearInterval(checkSpeakingInterval);
         }
       }, 500);
-      
+
       // Clear interval after 30 seconds as a safety measure
       setTimeout(() => {
         clearInterval(checkSpeakingInterval);
         setIsSpeaking(false);
       }, 30000);
-      
+
     } catch (error: any) {
       console.error('Error generating speech:', error);
       setIsSpeaking(false);
@@ -368,7 +400,7 @@ export function LarkChat() {
     try {
       setIsProcessing(true);
       setError(null); // Clear any previous errors
-      
+
       // Add user message to chat
       const userMsg: Message = { role: 'user', content: userMessage, timestamp: Date.now() };
 
@@ -376,7 +408,7 @@ export function LarkChat() {
       if (!savedUserMsg) {
         console.warn('Failed to save user message to database, but continuing with in-memory processing');
       }
-      
+
       // Analyze emotion using Hugging Face (don't await to avoid blocking)
       huggingFaceService.detectEmotion(userMessage)
         .then((emotionResult) => {
@@ -385,7 +417,7 @@ export function LarkChat() {
         .catch((error: unknown) => {
           console.error('[LarkChat] Error detecting emotion:', error);
         });
-      
+
       const updatedMessages: ChatHistory = [...messages, userMsg];
       setMessages(updatedMessages);
       setInput('');
@@ -408,13 +440,13 @@ export function LarkChat() {
       // Process the message
       let response = '';
       let detectedEmotion = 'neutral';
-      
+
       // Try to get emotion detection result
       try {
         const emotionResult = await huggingFaceService.detectEmotion(userMessage);
         detectedEmotion = emotionResult.emotion;
         console.log(`[LarkChat] Using detected emotion for response: ${detectedEmotion}`);
-        
+
         // Show empathetic message for strong negative emotions
         if (['anger', 'fear', 'sadness', 'disgust'].includes(detectedEmotion) && emotionResult.score > 0.7) {
           setInfo(`I notice you might be feeling ${detectedEmotion}. I'm here to help.`);
@@ -423,7 +455,7 @@ export function LarkChat() {
       } catch (error) {
         console.error('[LarkChat] Could not get emotion for response:', error);
       }
-      
+
       // First try voice command processing if appropriate
       if (!isOfflineQueued) {
         try {
@@ -437,33 +469,33 @@ export function LarkChat() {
           console.error('Voice command processing failed, falling back to Gemini:', error);
         }
       }
-      
+
       // If voice processing didn't yield a response, use OpenAI if available
       if (!response) {
         if (!chatRef.current) {
           console.log('Chat not initialized, using offline fallback response');
           // Provide a fallback response when OpenAI is not available
-          response = "I'm currently operating in offline mode. I can process voice commands, but advanced AI responses are unavailable. Please check your internet connection and API configuration."; 
+          response = "I'm currently operating in offline mode. I can process voice commands, but advanced AI responses are unavailable. Please check your internet connection and API configuration.";
         }
-        
+
         console.log('Processing with OpenAI...');
         try {
           // Add a timeout to prevent hanging requests
           const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('Request timed out')), 30000);
           });
-          
+
           // Include emotion in the OpenAI query
           const messagePromise = queryOpenAI(userMessage, detectedEmotion);
           const result = await Promise.race([messagePromise, timeoutPromise]) as string;
-          
+
           if (!result || result.includes('Unable to process')) {
             throw new Error('Received error response from AI service');
           }
-          
+
           response = result;
           console.log('Received response from OpenAI:', response ? 'Success' : 'Empty response');
-          
+
           if (!response || response.trim() === '') {
             throw new Error('Received empty response from AI service');
           }
@@ -475,18 +507,18 @@ export function LarkChat() {
       }
 
       // Add assistant response to chat
-      const assistantMsg: Message = { 
-        role: 'assistant', 
-        content: response, 
-        timestamp: Date.now() 
+      const assistantMsg: Message = {
+        role: 'assistant',
+        content: response,
+        timestamp: Date.now()
       };
 
-      
+
       const savedAssistantMsg = await saveMessage(assistantMsg);
       if (!savedAssistantMsg) {
         console.warn('Failed to save assistant message to database, but continuing with in-memory display');
       }
-      
+
       setMessages([...updatedMessages, assistantMsg]);
       console.log('Added assistant response to chat');
 
@@ -499,7 +531,7 @@ export function LarkChat() {
         console.error('Error speaking response:', speechError);
         // Don't throw here, just log the error
       }
-      
+
     } catch (error) {
       console.error('Error processing message:', error);
       const errorMsg: Message = {
@@ -528,9 +560,9 @@ export function LarkChat() {
     // Check for errors in LiveKitVoice context
     if (liveKitVoice.error) {
       console.error('[LarkChat] LiveKit error:', liveKitVoice.error);
-      
+
       const errorStr = String(liveKitVoice.error).toLowerCase();
-      
+
       // Handle different types of errors with improved user messages
       if (errorStr.includes('openai') || errorStr.includes('api key')) {
         // Better OpenAI API error handling
@@ -548,7 +580,7 @@ export function LarkChat() {
       }
     }
   }, [liveKitVoice.error]);
-  
+
   // Monitor microphone permission changes with improved guidance
   useEffect(() => {
     if (liveKitVoice.micPermission === 'denied') {
@@ -568,7 +600,7 @@ export function LarkChat() {
   const errorMessage = useMemo(() => {
     if (!error) return null;
     return (
-      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded-lg flex items-center space-x-2 animate-in fade-in duration-300">
+      <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg flex items-center space-x-3 animate-in fade-in duration-300 shadow-md backdrop-blur-sm">
         <AlertCircle className="h-5 w-5 flex-shrink-0" />
         <span>{error}</span>
       </div>
@@ -578,61 +610,68 @@ export function LarkChat() {
   const infoMessage = useMemo(() => {
     if (!info) return null;
     return (
-      <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-3 rounded-lg flex items-center space-x-2 animate-in fade-in duration-300">
+      <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg flex items-center space-x-3 animate-in fade-in duration-300 shadow-md backdrop-blur-sm">
         <Info className="h-5 w-5 flex-shrink-0" />
         <span>{info}</span>
       </div>
     );
   }, [info]);
-  
+
   // Memoize the message list to prevent re-renders when other state changes
   const messageList = useMemo(() => {
     return messages.map((message, index) => (
-      <MessageBubble 
-        key={`${message.timestamp}-${index}`} 
-        message={message} 
-        onSpeakText={speakText} 
+      <MessageBubble
+        key={`${message.timestamp}-${index}`}
+        message={message}
+        onSpeakText={speakText}
       />
     ));
   }, [messages, speakText]);
 
   return (
-    <div className="flex flex-col h-[80vh] max-w-2xl mx-auto p-4 space-y-4">
+    <div className="chat-container max-w-2xl mx-auto p-4 space-y-4">
       {/* Error message */}
       {errorMessage}
-      
+
       {/* Info message */}
       {infoMessage}
-      
-      <ScrollArea className="flex-1 p-4 rounded-lg border border-border/30 bg-white/90 shadow-md backdrop-blur-sm" style={{ height: '500px', position: 'relative', overflow: 'hidden' }}>
-        <div className="space-y-6" style={{ minHeight: 'calc(100% - 50px)', paddingBottom: '20px' }}>
+
+      <ScrollArea className="chat-messages p-5 rounded-xl border border-white/50 bg-white/95 shadow-lg backdrop-blur-lg transition-all duration-300 hover:shadow-xl">
+        <div className="space-y-6">
           {messageList}
-          <div ref={messagesEndRef} style={{ height: '10px', padding: '12px 0', margin: '10px 0' }} />
+          <div ref={messagesEndRef} className="message-end-anchor" />
         </div>
       </ScrollArea>
 
       {!isInitialized ? (
-        <div className="flex items-center justify-center p-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003087]"></div>
+        <div className="chat-loading p-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#002166] border-t-2 border-t-[#0046c7]/30 shadow-md"></div>
         </div>
       ) : (
-        <div className="flex flex-col space-y-2">
+        <div className="chat-input-container flex flex-col space-y-2">
           <form onSubmit={handleSubmit} className="flex space-x-3">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              disabled={isProcessing}
-              className="flex-1 text-black border-border/30 focus:border-[#003087] focus:ring-[#003087] rounded-full py-6 px-4 shadow-sm bg-white/90 backdrop-blur-sm"
-            />
+            <div className="relative flex-1">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type your message..."
+                disabled={isProcessing}
+                className="flex-1 text-black border-white/50 focus:border-[#002166] focus:ring-[#002166] rounded-full py-6 pl-12 pr-5 shadow-md bg-white/95 backdrop-blur-lg transition-all duration-300 hover:shadow-lg"
+              />
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                <Badge variant="outline" className="bg-blue-50 text-[#002166] border-blue-200 px-1.5 py-1 font-medium">
+                  <MessageSquare className="h-4 w-4" />
+                </Badge>
+              </div>
+            </div>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={isProcessing || !input.trim()}
                     variant="default"
-                    className="bg-[#003087] hover:bg-[#004db3] transition-colors rounded-full p-6 h-auto w-auto shadow-md"
+                    className="bg-gradient-to-r from-[#002166] to-[#0046c7] hover:from-[#0046c7] hover:to-[#002166] transition-all duration-300 rounded-full p-6 h-auto w-auto shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
                     <SendIcon className="h-5 w-5" />
                   </Button>
@@ -642,7 +681,7 @@ export function LarkChat() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -651,7 +690,7 @@ export function LarkChat() {
                       type="button"
                       onClick={stopSpeaking}
                       variant="destructive"
-                      className="transition-colors"
+                      className="transition-all duration-300 rounded-full bg-red-500 hover:bg-red-600 shadow-lg hover:shadow-xl transform hover:scale-105"
                     >
                       <StopCircleIcon className="h-5 w-5" />
                     </Button>
@@ -668,7 +707,7 @@ export function LarkChat() {
                       }}
                       variant="outline"
                       disabled={!messages.some(m => m.role === 'assistant')}
-                      className="border-gray-300 hover:bg-gray-100 transition-colors"
+                      className="border-white/50 hover:bg-white/80 transition-all duration-300 rounded-full shadow-md hover:shadow-lg transform hover:scale-105"
                     >
                       <VolumeIcon className="h-5 w-5" />
                     </Button>
@@ -679,14 +718,14 @@ export function LarkChat() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     type="button"
                     variant="outline"
-                    className="border-gray-300 hover:bg-gray-100 transition-colors"
+                    className="bg-gradient-to-r from-[#002166]/10 to-[#0046c7]/10 border-[#002166]/20 hover:bg-gradient-to-r hover:from-[#002166]/20 hover:to-[#0046c7]/20 transition-all duration-300 rounded-full shadow-md hover:shadow-lg transform hover:scale-105"
                     onClick={async () => {
                       if (voice.isListening) {
                         voice.stopListening();
@@ -710,12 +749,20 @@ export function LarkChat() {
                     disabled={!isOnline}
                   >
                     {voice.isListening ? (
-                      <Mic className="h-5 w-5 text-green-500 animate-pulse" />
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-green-400/30 rounded-full animate-ping opacity-75"></div>
+                        <div className="absolute inset-0 bg-green-300/30 rounded-full animate-pulse opacity-50"></div>
+                        <Mic className="h-5 w-5 text-green-600 relative z-10" />
+                      </div>
                     ) : voice.micPermission === 'denied' ? (
-                      <MicOff className="h-5 w-5 text-red-500" />
+                      <div className="relative">
+                        <MicOff className="h-5 w-5 text-red-500 relative z-10" />
+                      </div>
                     ) : (
-                      <Mic className="h-5 w-5 text-gray-500" />
-                    )}
+                      <div className="relative">
+                        <Mic className="h-5 w-5 text-[#002166] relative z-10" />
+                      </div>
+                    )
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -724,7 +771,7 @@ export function LarkChat() {
               </Tooltip>
             </TooltipProvider>
           </form>
-          
+
           {isProcessing && (
             <div className="text-center text-sm text-gray-500 mt-2">
               <div className="inline-block animate-pulse">Processing your request...</div>
@@ -736,4 +783,4 @@ export function LarkChat() {
   );
 };
 
-export default LarkChat;
+export { LarkChat };

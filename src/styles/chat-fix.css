@@ -1,0 +1,68 @@
+/* Chat layout fixes to prevent jumping */
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  scroll-behavior: smooth;
+  padding-bottom: 20px;
+  will-change: transform; /* Optimize for animations */
+}
+
+.chat-input-container {
+  position: sticky;
+  bottom: 0;
+  background: transparent;
+  padding-top: 8px;
+  z-index: 10;
+  margin-top: auto;
+}
+
+.message-end-anchor {
+  height: 1px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Prevent layout shifts during loading */
+.chat-loading {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure consistent heights */
+@media (max-height: 700px) {
+  .chat-container {
+    height: 70vh;
+  }
+}
+
+@media (min-height: 701px) {
+  .chat-container {
+    height: 80vh;
+  }
+}
+
+/* Prevent content jumping on mobile */
+@media (max-width: 640px) {
+  .chat-messages {
+    height: calc(100% - 70px);
+  }
+}
