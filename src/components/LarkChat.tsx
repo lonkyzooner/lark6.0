@@ -783,4 +783,4 @@ export const LarkChat: React.FC = () => {
   );
 };
 
-export { LarkChat };
+// Component is already exported on line 93
