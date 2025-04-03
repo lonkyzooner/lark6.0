@@ -1,27 +1,10 @@
 
-// Get API key from environment variable with fallback options
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || localStorage.getItem('openai_api_key') || '';
+// We're using the backend API, so we don't need an API key in the frontend
+const OPENAI_API_KEY = 'backend-api-key';
 
-// Fallback API key for development/testing (should be configured in production)
-const FALLBACK_API_KEY = 'sk-fallback-dev-mode-key';
-
-// Check if we're in development mode to use fallback in non-production environments
-const IS_DEV_MODE = import.meta.env.DEV || window.location.hostname === 'localhost';
-
-// Function to get the best available API key
+// Function to get the API key - always returns a valid key since we're using the backend API
 function getAPIKey(): string {
-  if (OPENAI_API_KEY) {
-    return OPENAI_API_KEY;
-  }
-  
-  // Only use fallback in development mode
-  if (IS_DEV_MODE) {
-    console.log('Using development fallback API key - replace in production');
-    return FALLBACK_API_KEY;
-  }
-  
-  console.error('OpenAI API key is missing. Please check your environment variables.');
-  return '';  
+  return OPENAI_API_KEY;
 }
 
 // Simple in-memory cache
@@ -50,22 +33,22 @@ function generateCacheKey(prompt: string, emotion: string): string {
 function cleanCache(): void {
   const now = Date.now();
   let entriesToDelete: string[] = [];
-  
+
   // Find expired entries
   responseCache.forEach((entry, key) => {
     if (now - entry.timestamp > CACHE_TTL) {
       entriesToDelete.push(key);
     }
   });
-  
+
   // Delete expired entries
   entriesToDelete.forEach(key => responseCache.delete(key));
-  
+
   // If still too many entries, remove oldest ones
   if (responseCache.size > MAX_CACHE_SIZE) {
     const entries = Array.from(responseCache.entries());
     entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-    
+
     const excessEntries = entries.slice(0, entries.length - MAX_CACHE_SIZE);
     excessEntries.forEach(([key]) => responseCache.delete(key));
   }
@@ -77,9 +60,9 @@ function cleanCache(): void {
 export async function queryOpenAI(prompt: string, emotion: string = 'neutral'): Promise<string> {
   // Clean cache periodically
   cleanCache();
-  
+
   const cacheKey = generateCacheKey(prompt, emotion);
-  
+
   // Check cache first
   if (responseCache.has(cacheKey)) {
     const cached = responseCache.get(cacheKey)!;
@@ -90,30 +73,22 @@ export async function queryOpenAI(prompt: string, emotion: string = 'neutral'): 
     // Cache expired, remove it
     responseCache.delete(cacheKey);
   }
-  
+
   // Check if there's already a pending request for this prompt
   if (pendingRequests.has(cacheKey)) {
     console.log("Using pending OpenAI request for:", prompt.substring(0, 30));
     return pendingRequests.get(cacheKey)!;
   }
-  
+
   // Create a new request
   const requestPromise = (async () => {
     try {
       console.log("Sending query to OpenAI:", prompt.substring(0, 30));
-      
-      // Get the API key using our helper function
-      const apiKey = getAPIKey();
-      
-      // Check if we have a valid API key
-      if (!apiKey) {
-        throw new Error('No valid API key available - cannot make OpenAI request');
-      }
-      
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+
+      // Use the backend API instead of calling OpenAI directly
+      const response = await fetch('/api/openai/chat', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -142,13 +117,13 @@ The user's detected emotional state is: ${emotion}. Adjust your tone accordingly
 
       const data = await response.json();
       const aiResponse = data.choices[0].message.content.trim();
-      
+
       // Cache the response
       responseCache.set(cacheKey, {
         response: aiResponse,
         timestamp: Date.now()
       });
-      
+
       console.log("OpenAI response cached:", aiResponse.substring(0, 30));
       return aiResponse;
     } catch (error) {
@@ -159,9 +134,9 @@ The user's detected emotional state is: ${emotion}. Adjust your tone accordingly
       pendingRequests.delete(cacheKey);
     }
   })();
-  
+
   // Store the pending request
   pendingRequests.set(cacheKey, requestPromise);
-  
+
   return requestPromise;
 }
