@@ -3,21 +3,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "functions": {
-    "api/*.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
-  "routes": [
-    { "src": "/api/auth/(.*)", "dest": "/api/auth.js" },
-    { "src": "/api/subscription/(.*)", "dest": "/api/subscription.js" },
-    { "src": "/api/webhook", "dest": "/api/stripe-webhook.js" },
-    { "src": "/api/livekit/(.*)", "dest": "/api/livekit.js" },
-    { "src": "/api/openai/(.*)", "dest": "/api/openai.js" },
-    { "src": "/api/reports/(.*)", "dest": "/api/reports.js" },
-    { "src": "/api/(.*)", "dest": "/api/$1.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -41,19 +29,5 @@
     "VITE_LIVEKIT_API_SECRET": "fleSOaoOdQ0v5fOatkISxYqvNygclQAeSilRMZ1kLbwB",
     "VITE_APP_VERSION": "1.0.1",
     "NODE_ENV": "production"
-  },
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist",
-        "zeroConfig": true
-      }
-    },
-    {
-      "src": "api/*.js",
-      "use": "@vercel/node"
-    }
-  ]
+  }
 }
