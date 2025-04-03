@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import axios from 'axios';
 import { matchCommand as matchLocalCommand } from './command-matcher';
 import { processOfflineCommand } from './offline-commands';
 import { processCommandChain } from './command-chain-processor';
@@ -7,21 +7,70 @@ import { commandAnalytics } from './command-analytics';
 import { commandPredictor } from './command-predictor';
 import { commandLearning } from './command-learning';
 
-// Initialize OpenAI with environment variable
-const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-if (!apiKey) {
-  console.error('OpenAI API key not found in environment variables');
-}
+// Get API URL from environment variables
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-// Fallback API key in case environment variable is not available
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
+console.log('OpenAI service initialized to use secure backend API endpoints');
 
-const openai = new OpenAI({
-  apiKey: apiKey || OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // For client-side usage
+// Create axios instance for API calls with enhanced error handling
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  timeout: 15000 // 15 seconds timeout
 });
 
-console.log('OpenAI service initialized with API key:', apiKey ? 'From environment' : 'Using fallback key');
+// Add request interceptor for logging
+api.interceptors.request.use(config => {
+  console.log(`[API] ${config.method?.toUpperCase()} request to ${config.url}`);
+  return config;
+});
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    // Handle network errors
+    if (!error.response) {
+      console.error('[API] Network error:', error.message);
+      return Promise.reject(new Error('Network error. Please check your connection.'));
+    }
+
+    // Handle timeout errors
+    if (error.code === 'ECONNABORTED') {
+      console.error('[API] Request timeout:', error.message);
+      return Promise.reject(new Error('Request timed out. Please try again.'));
+    }
+
+    // Handle API errors with status codes
+    const status = error.response.status;
+    const errorData = error.response.data;
+
+    console.error(`[API] Error ${status}:`, errorData);
+
+    // Customize error message based on status code
+    let errorMessage = 'An error occurred while processing your request.';
+
+    if (status === 401 || status === 403) {
+      errorMessage = 'Authentication error. Please check your credentials.';
+    } else if (status === 404) {
+      errorMessage = 'The requested resource was not found.';
+    } else if (status === 429) {
+      errorMessage = 'Too many requests. Please try again later.';
+    } else if (status >= 500) {
+      errorMessage = 'Server error. Please try again later.';
+    }
+
+    // Use error message from API if available
+    if (errorData && errorData.error) {
+      errorMessage = errorData.error;
+    }
+
+    return Promise.reject(new Error(errorMessage));
+  }
+);
+
 
 // Command execution state and types
 type CommandState = {
@@ -38,16 +87,42 @@ const commandState: CommandState = {
   offline: false // Track offline status
 };
 
-// Check internet connectivity
-async function checkConnectivity(): Promise<boolean> {
+// Check internet connectivity with retry mechanism
+async function checkConnectivity(retries = 2): Promise<boolean> {
   try {
-    const response = await fetch('https://api.openai.com/v1/engines', {
-      method: 'HEAD'
+    const response = await fetch(`${API_URL}/health`, {
+      method: 'HEAD',
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
     });
-    commandState.offline = !response.ok;
-    return response.ok;
+
+    if (response.ok) {
+      // Connection successful
+      if (commandState.offline) {
+        console.log('Network connectivity restored');
+      }
+      commandState.offline = false;
+      return true;
+    } else {
+      // Server responded but with an error
+      console.warn(`Health check failed with status: ${response.status}`);
+      commandState.offline = true;
+      return false;
+    }
   } catch (error) {
-    console.log('Network connectivity issue detected, switching to offline mode');
+    console.log('Network connectivity issue detected');
+
+    // Retry logic
+    if (retries > 0) {
+      console.log(`Retrying connectivity check... (${retries} attempts left)`);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+      return checkConnectivity(retries - 1);
+    }
+
+    console.log('Switching to offline mode after failed retries');
     commandState.offline = true;
     return false;
   }
@@ -77,21 +152,21 @@ import { matchCommand } from './command-matcher';
 export async function processVoiceCommand(transcript: string): Promise<CommandResponse> {
   console.log('Processing voice command:', transcript);
   const startTime = Date.now();
-  
+
   // For text chat input, we want to ensure commands are always processed
   // even if another command is in progress
   if (commandState.inProgress) {
     console.log('Command processing already in progress, but proceeding for text input');
     // We'll continue processing for text input to improve responsiveness
   }
-  
+
   // Check for command corrections
   const correctedCommand = commandLearning.suggestCorrection(transcript);
   if (correctedCommand && correctedCommand !== transcript.toLowerCase()) {
     console.log(`Corrected command: ${transcript} -> ${correctedCommand}`);
     transcript = correctedCommand;
   }
-  
+
   commandState.inProgress = true;
   commandState.lastCommand = transcript;
 
@@ -138,7 +213,7 @@ export async function processVoiceCommand(transcript: string): Promise<CommandRe
       return result;
     }
 
-    // Check connectivity before using OpenAI
+    // Check connectivity before using API
     if (!await checkConnectivity()) {
       console.log('No internet connection, limited to offline commands');
       commandState.inProgress = false;
@@ -150,72 +225,42 @@ export async function processVoiceCommand(transcript: string): Promise<CommandRe
       };
     }
 
-    console.log('Using OpenAI for command interpretation');
-
-    const prompt = `
-      As LARK (Law Enforcement Assistance and Response Kit), I need to interpret voice commands from police officers.
-      Based on the following transcript, determine the command and action required:
-
-      Command categories:
-      - "miranda": Read Miranda rights (parameters: language)
-      - "statute": Look up a statute (parameters: statute number)
-      - "threat": Identify potential threats
-      - "tactical": Provide tactical guidance
-      - "general_query": Answer a general question or request that doesn't fit the other categories
-      - "unknown": Command not recognized
-
-      Transcript: "${transcript}"
-
-      Respond with JSON only in this format:
-      {
-        "command": "original command",
-        "action": "miranda|statute|threat|tactical|general_query|unknown",
-        "parameters": {
-          "language": "english|spanish|french|vietnamese|mandarin|arabic",
-          "statute": "statute number",
-          "threat": "description",
-          "query": "the query to answer if it's a general question"
-        }
-      }
-    `;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: "You are LARK, a police officer's AI assistant, operating like JARVIS from Iron Man. You process voice commands, provide translations, and return structured responses in a professional yet conversational manner." },
-        { role: "user", content: prompt }
-      ],
-      response_format: { type: "json_object" }
-    });
-
-    const responseText = completion.choices[0].message.content;
-    
-    if (!responseText) {
-      throw new Error("No response from OpenAI");
-    }
+    console.log('Using secure backend API for command interpretation');
 
     try {
-      // Parse the JSON response
-      const parsedResponse = JSON.parse(responseText) as CommandResponse;
-      console.log('Parsed OpenAI response:', parsedResponse);
-      
-      // Execute the identified command
-      const result = await executeCommand(parsedResponse);
-      console.log('Command execution result:', result);
-      
-      commandState.inProgress = false;
-      return result;
-    } catch (parseError) {
-      console.error('Error parsing OpenAI response:', parseError);
-      // If JSON parsing fails, try to use the raw response as a general query
+      // Call our secure backend API endpoint
+      const response = await api.post('/openai/process-command', {
+        transcript
+      });
+
+      if (response.data.success) {
+        const result = response.data;
+        console.log('Command execution result from API:', result);
+
+        commandState.inProgress = false;
+        return {
+          command: result.command,
+          action: result.action,
+          parameters: result.parameters,
+          executed: result.executed,
+          result: result.result,
+          error: result.error,
+          metadata: result.metadata
+        };
+      } else {
+        throw new Error(response.data.error || 'Unknown error from API');
+      }
+    } catch (apiError) {
+      console.error('Error calling API:', apiError);
+      // If API call fails, try to use a fallback response
       const fallbackResponse: CommandResponse = {
         command: transcript,
         action: 'general_query',
         parameters: { query: transcript },
-        executed: true,
-        result: responseText
+        executed: false,
+        error: apiError instanceof Error ? apiError.message : 'Error communicating with API'
       };
-      
+
       commandState.inProgress = false;
       return fallbackResponse;
     }
@@ -234,24 +279,18 @@ export async function processVoiceCommand(transcript: string): Promise<CommandRe
 // Get information about a specific legal statute
 export async function getLegalInformation(statute: string): Promise<string> {
   try {
-    const prompt = `
-      As a legal assistant specialized in Louisiana law, provide information about the following statute:
-      ${statute}
-      
-      If this is a valid Louisiana statute, provide a brief explanation in a professional tone.
-      If this is not a valid statute, indicate that it could not be found.
-      Keep your response concise and focused on the legal facts.
-    `;
+    console.log('Getting legal information for statute:', statute);
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: "You are LARK's legal module, operating like JARVIS from Iron Man. You specialize in Louisiana law and can provide translations of legal terms and concepts while maintaining a professional yet conversational tone." },
-        { role: "user", content: prompt }
-      ]
+    // Call our secure backend API endpoint
+    const response = await api.post('/openai/legal', {
+      statute
     });
 
-    return completion.choices[0].message.content || "Unable to retrieve information for this statute.";
+    if (response.data.success) {
+      return response.data.result;
+    } else {
+      throw new Error(response.data.error || 'Unknown error from API');
+    }
   } catch (error) {
     console.error("Error getting legal information:", error);
     return "An error occurred while retrieving statute information.";
@@ -261,32 +300,18 @@ export async function getLegalInformation(statute: string): Promise<string> {
 // General knowledge query function for answering any law enforcement related questions
 export async function getGeneralKnowledge(query: string): Promise<string> {
   try {
-    const systemPrompt = `
-      You are LARK (Law Enforcement Assistance and Response Kit), an AI assistant designed specifically for police officers in Louisiana.
-      
-      Guidelines:
-      - Provide accurate, concise, and helpful information relevant to law enforcement.
-      - Prioritize officer safety and legal compliance in all answers.
-      - Format responses for easy reading on a body-mounted display.
-      - When discussing laws, focus on Louisiana statutes when applicable.
-      - Include relevant statute numbers when appropriate.
-      - Be conversational but professional, you are sort of like JARVIS from Iron Man.
-      - Avoid lengthy explanations unless requested.
-      - Never suggest actions that would violate civil rights or proper procedure.
-      - you can provide translation services as well.
-    `;
+    console.log('Getting general knowledge for query:', query);
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: query }
-      ],
-      temperature: 0.7,
-      max_tokens: 500
+    // Call our secure backend API endpoint
+    const response = await api.post('/openai/general', {
+      query
     });
 
-    return completion.choices[0].message.content || "I'm unable to answer that question at the moment.";
+    if (response.data.success) {
+      return response.data.result;
+    } else {
+      throw new Error(response.data.error || 'Unknown error from API');
+    }
   } catch (error) {
     console.error("Error getting general knowledge:", error);
     return "I apologize, but I'm experiencing a technical issue retrieving that information.";
@@ -299,7 +324,7 @@ async function executeCommand(command: CommandResponse): Promise<CommandResponse
   try {
     let result = '';
     console.log('Executing command:', command.action, command);
-    
+
     // Handle case where command might be undefined or null
     if (!command || !command.action) {
       return {
@@ -309,14 +334,14 @@ async function executeCommand(command: CommandResponse): Promise<CommandResponse
         result: 'I\'m not sure how to process that command. Could you please rephrase it?'
       };
     }
-    
+
     switch (command.action) {
       case 'miranda':
         // Use command context for language preference
         const language = command.parameters?.language || commandContext.getLanguagePreference() || 'english';
         commandContext.setLanguagePreference(language);
         result = `Miranda rights will be read in ${language}`;
-        
+
         // Return with specific metadata to ensure the language is passed to the UI
         return {
           ...command,
@@ -325,7 +350,7 @@ async function executeCommand(command: CommandResponse): Promise<CommandResponse
           metadata: { language }
         };
         break;
-        
+
       case 'statute':
         if (command.parameters?.statute) {
           commandContext.setLastStatute(command.parameters.statute);
@@ -341,11 +366,11 @@ async function executeCommand(command: CommandResponse): Promise<CommandResponse
           }
         }
         break;
-        
+
       case 'threat':
         // Use command context for threat assessment
         commandContext.updateThreatContext(command.parameters?.location);
-        
+
         // If recent assessment exists, include it in the response
         if (commandContext.isRecentThreatAssessment()) {
           const lastAssessment = commandContext.getLastThreatAssessment();
@@ -353,28 +378,28 @@ async function executeCommand(command: CommandResponse): Promise<CommandResponse
             result = `Recent threat assessment from ${new Date(lastAssessment.timestamp).toLocaleTimeString()}: `;
           }
         }
-        
+
         result += await assessThreatLevel(command.parameters?.threat || command.command);
         break;
-        
+
       case 'tactical':
         result = await assessTacticalSituation(command.command);
         break;
-        
+
       case 'general_query':
         result = await getGeneralKnowledge(command.parameters?.query || command.command);
         break;
-        
+
       case 'unknown':
         // For unknown commands, treat them as general queries
         result = await getGeneralKnowledge(command.command);
         break;
-        
+
       default:
         // Default to general knowledge for any unrecognized action
         result = await getGeneralKnowledge(command.command);
     }
-    
+
     return {
       ...command,
       executed: true,
@@ -391,63 +416,41 @@ async function executeCommand(command: CommandResponse): Promise<CommandResponse
 
 // New function to assess threat levels
 async function assessThreatLevel(situation: string): Promise<string> {
-  const prompt = `
-    As LARK, assess the following situation for potential threats:
-    ${situation}
-    
-    Consider:
-    - Immediate dangers
-    - Suspicious behaviors
-    - Environmental hazards
-    - Tactical considerations
-    
-    Provide a concise threat assessment with recommended actions.
-  `;
+  try {
+    console.log('Assessing threat level for situation:', situation);
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4",
-    messages: [
-      { role: "system", content: "You are LARK's threat assessment module, operating like JARVIS from Iron Man. Provide clear, actionable threat assessments while maintaining a professional yet conversational tone. You can translate threats described in other languages when needed." },
-      { role: "user", content: prompt }
-    ],
-    temperature: 0.7
-  });
+    // Call our secure backend API endpoint
+    const response = await api.post('/openai/threat', {
+      situation
+    });
 
-  return completion.choices[0].message.content || "Unable to assess threat level.";
+    if (response.data.success) {
+      return response.data.result;
+    } else {
+      throw new Error(response.data.error || 'Unknown error from API');
+    }
+  } catch (error) {
+    console.error("Error assessing threat level:", error);
+    return "Unable to assess threat level at this time.";
+  }
 }
 
 export async function assessTacticalSituation(situation: string): Promise<string> {
   try {
-    const systemPrompt = `
-      You are LARK, a tactical assessment assistant for police officers in Louisiana.
-      Your purpose is to analyze situation descriptions and provide tactical considerations.
-      
-      Guidelines:
-      - Always prioritize officer safety above all else
-      - Be conversational but professional, like JARVIS from Iron Man
-      - Provide clear, actionable advice
-      - Avoid lengthy explanations unless requested
-      - Never suggest actions that would violate civil rights or proper procedure
-      - You can provide translation services when needed
-      - Consider potential threats and recommend appropriate responses
-      - Cite relevant protocols or training standards when applicable
-      - Be concise and direct - officers may be in time-sensitive situations
-      - Format responses for easy reading in stressful situations
-      - Never recommend excessive force or actions that violate proper procedure
-    `;
+    console.log('Assessing tactical situation:', situation);
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: `Assess this situation and provide tactical considerations: ${situation}` }
-      ],
-      temperature: 0.5
+    // Call our secure backend API endpoint
+    const response = await api.post('/openai/tactical', {
+      situation
     });
 
-    return completion.choices[0].message.content || "Unable to assess tactical situation.";
+    if (response.data.success) {
+      return response.data.result;
+    } else {
+      throw new Error(response.data.error || 'Unknown error from API');
+    }
   } catch (error) {
     console.error("Error assessing tactical situation:", error);
     return "Unable to process tactical assessment at this time.";
   }
-} 
+}

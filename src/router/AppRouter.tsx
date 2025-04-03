@@ -8,6 +8,7 @@ import LandingPage from '../pages/LandingPage';
 import AccountPage from '../pages/AccountPage';
 import StripeLoginPage from '../pages/StripeLoginPage';
 import DashboardPage from '../pages/DashboardPage';
+import ReportsPage from '../pages/ReportsPage';
 import { useStripeAuth } from '../auth/StripeAuthProvider';
 
 
@@ -30,30 +31,30 @@ interface AppProps {
 export const AppRouter: React.FC = () => {
   const { isAuthenticated } = useStripeAuth();
   const isDevelopment = process.env.NODE_ENV !== 'production';
-  
+
   // Temporarily use development authentication by default
   // TODO: Replace with proper authentication once payment integration is complete
   const urlParams = new URLSearchParams(window.location.search);
   const skipAuth = urlParams.get('skipAuth') !== 'false'; // Default to true unless explicitly set to false
-  
+
   // Use App component for all cases
   const AppComponent = App as React.ComponentType<AppProps>;
-    
+
   // Create a development version of ProtectedRoute that doesn't require authentication
   const DevProtectedRoute: React.FC<{children: React.ReactNode}> = ({ children }) => {
     return <>{children}</>;
   };
-  
+
   // Use the appropriate ProtectedRoute component
   const RouteGuard = skipAuth ? DevProtectedRoute : ProtectedRoute;
-  
+
   return (
     <BrowserRouter>
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<StripeLoginPage />} />
-        
+
         {/* Protected routes */}
         <Route path="/dashboard" element={
           <RouteGuard>
@@ -62,7 +63,7 @@ export const AppRouter: React.FC = () => {
             </AuthenticatedLayout>
           </RouteGuard>
         } />
-        
+
         {/* Subscription and Pricing Pages */}
         <Route path="/pricing" element={<StripePricingPage />} />
         <Route path="/account" element={
@@ -79,7 +80,16 @@ export const AppRouter: React.FC = () => {
             </AuthenticatedLayout>
           </RouteGuard>
         } />
-        
+
+        {/* Reports feature */}
+        <Route path="/reports" element={
+          <RouteGuard>
+            <AuthenticatedLayout>
+              <ReportsPage />
+            </AuthenticatedLayout>
+          </RouteGuard>
+        } />
+
         {/* Premium features */}
         <Route path="/threat-detection" element={
           <RouteGuard>
@@ -88,7 +98,7 @@ export const AppRouter: React.FC = () => {
             </AuthenticatedLayout>
           </RouteGuard>
         } />
-        
+
         <Route path="/miranda" element={
           <RouteGuard>
             <AuthenticatedLayout>
@@ -96,7 +106,7 @@ export const AppRouter: React.FC = () => {
             </AuthenticatedLayout>
           </RouteGuard>
         } />
-        
+
         <Route path="/statutes" element={
           <RouteGuard>
             <AuthenticatedLayout>
@@ -104,7 +114,7 @@ export const AppRouter: React.FC = () => {
             </AuthenticatedLayout>
           </RouteGuard>
         } />
-        
+
         {/* Fallback route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

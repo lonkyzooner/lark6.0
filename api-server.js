@@ -3,21 +3,35 @@ const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const compression = require('compression');
+const helmet = require('helmet');
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Middleware
+// Security middleware
+app.use(helmet());
+
+// Compression middleware
+app.use(compression());
+
+// CORS configuration
 app.use(cors({
-  origin: ['http://localhost:8080', 'http://localhost:8081', 'http://localhost:8082', 'http://localhost:8083', 'http://localhost:8084', 'https://lark-law.com']
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://lark-law.com', process.env.FRONTEND_URL].filter(Boolean)
+    : ['http://localhost:8080', 'http://localhost:8081', 'http://localhost:8082', 'http://localhost:8083', 'http://localhost:8084'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(bodyParser.json());
+
+// Body parsing middleware
+app.use(bodyParser.json({ limit: '1mb' }));
 
 // Create checkout session
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
     const { priceId, successUrl, cancelUrl } = req.body;
-    
+
     // Create a checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -31,7 +45,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       success_url: successUrl || 'http://localhost:8080/dashboard?subscription=success',
       cancel_url: cancelUrl || 'http://localhost:8080/pricing',
     });
-    
+
     res.json({ id: session.id, url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);
@@ -43,7 +57,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
-  
+
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
@@ -54,7 +68,7 @@ app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (re
     console.error(`Webhook signature verification failed: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-  
+
   // Handle the event
   switch (event.type) {
     case 'customer.subscription.created':
@@ -71,7 +85,7 @@ app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (re
     default:
       console.log(`Unhandled event type ${event.type}`);
   }
-  
+
   res.json({ received: true });
 });
 
@@ -79,21 +93,21 @@ app.post('/api/webhook', bodyParser.raw({ type: 'application/json' }), async (re
 app.get('/api/subscription/:customerId', async (req, res) => {
   try {
     const { customerId } = req.params;
-    
+
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: 'active',
       expand: ['data.default_payment_method'],
     });
-    
+
     if (subscriptions.data.length === 0) {
       return res.json({ active: false });
     }
-    
+
     // Get the subscription details
     const subscription = subscriptions.data[0];
     const product = await stripe.products.retrieve(subscription.items.data[0].price.product);
-    
+
     res.json({
       active: true,
       subscription_id: subscription.id,
@@ -107,7 +121,29 @@ app.get('/api/subscription/:customerId', async (req, res) => {
   }
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('API Server Error:', err);
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({
+    success: false,
+    error: err.message || 'Internal Server Error',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'Not Found',
+    message: `The requested resource '${req.originalUrl}' was not found on this server.`,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`LARK API Server running on port ${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

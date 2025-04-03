@@ -44,7 +44,8 @@ import {
   CheckCircle2,
   WrenchIcon,
   Settings as SettingsIcon,
-  Volume as VolumeUpIcon
+  Volume as VolumeUpIcon,
+  FileText as FileTextIcon
 } from 'lucide-react';
 
 interface AppProps {
@@ -282,6 +283,19 @@ function App({ initialTab = 'voice' }: AppProps) {
                     <AlertTriangleIcon className="h-4 w-4" />
                   </div>
                   <span className="text-sm font-medium">Threats</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger
+                value="reports"
+                className="flex-1 rounded-full py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#002166] data-[state=active]:to-[#0046c7] data-[state=active]:text-white text-muted-foreground font-medium transition-all duration-300 hover:text-foreground focus-ring hover:bg-white/70 data-[state=active]:shadow-lg data-[state=active]:scale-[1.02] TabsTrigger"
+                style={{ color: activeTab === 'reports' ? 'white' : 'inherit' }}
+                onClick={() => window.location.href = '/reports'}
+              >
+                <div className="flex items-center justify-center gap-2 w-full">
+                  <div className="bg-white/30 rounded-full p-1.5 shadow-inner data-[state=active]:bg-white/40">
+                    <FileTextIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">Reports</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger

@@ -1,7 +1,8 @@
 import { BehaviorSubject, Subject } from 'rxjs';
+import axios from 'axios';
 
 // Constants for voice synthesis configuration
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 const DEFAULT_VOICE = 'ash'; // Standard voice for all LARK components (OpenAI voices: alloy, echo, fable, onyx, nova, shimmer, ash)
 const DEFAULT_MODEL = 'tts-1'; // OpenAI TTS models: tts-1 (faster) or tts-1-hd (higher quality)
 const DEFAULT_RESPONSE_FORMAT = 'mp3'; // Response formats: mp3, opus, aac, flac
@@ -51,47 +52,147 @@ export class OpenAIVoiceService {
   constructor() {
     console.log('[OpenAIVoice] Service initialized');
     this.validateConfiguration();
-    
+
     // Monitor network status for better error handling
     window.addEventListener('online', this.handleNetworkChange.bind(this));
     window.addEventListener('offline', this.handleNetworkChange.bind(this));
   }
 
   private validateConfiguration(): void {
-    if (!OPENAI_API_KEY) {
-      console.error('[OpenAIVoice] OpenAI API key not configured');
-      this.emitEvent('error', { 
+    if (!API_URL) {
+      console.error('[OpenAIVoice] API URL not configured');
+      this.emitEvent('error', {
         type: 'configuration_error',
-        message: 'OpenAI API key not configured',
+        message: 'API URL not configured',
         recoverable: false
       });
       this.synthesisState.next('error');
     }
   }
-  
+
   /**
    * Handle network status changes
    */
   private handleNetworkChange(): void {
     const isOnline = navigator.onLine;
     this.networkStatus = isOnline;
-    
+
     if (!isOnline) {
       console.warn('[OpenAIVoice] Network connection lost');
-      this.emitEvent('network_issue', { 
+      this.emitEvent('network_issue', {
         online: false,
         message: 'Network connection lost. Voice synthesis may be unavailable.'
       });
+
+      // If we have items in the queue, try to use browser speech synthesis as fallback
+      if (this.speakQueue.length > 0) {
+        this.useBrowserSpeechSynthesisFallback();
+      }
     } else {
       console.log('[OpenAIVoice] Network connection restored');
-      this.emitEvent('network_issue', { 
+      this.emitEvent('network_issue', {
         online: true,
         message: 'Network connection restored.'
       });
-      
+
       // Retry any pending synthesis if we're back online
       if (this.speakQueue.length > 0 && !this.isProcessing) {
         this.processQueue();
+      }
+    }
+  }
+
+  /**
+   * Use browser's built-in speech synthesis as a fallback
+   */
+  private useBrowserSpeechSynthesisFallback(): void {
+    if (!window.speechSynthesis || this.speakQueue.length === 0) {
+      return;
+    }
+
+    console.log('[OpenAIVoice] Using browser speech synthesis as fallback');
+
+    // Get the first item in the queue
+    const queueItem = this.speakQueue[0];
+
+    try {
+      // Create utterance
+      const utterance = new SpeechSynthesisUtterance(queueItem.text);
+
+      // Set language to English
+      utterance.lang = 'en-US';
+
+      // Set voice if available
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        // Try to find a good voice
+        const preferredVoice = voices.find(v =>
+          v.name.includes('Google') ||
+          v.name.includes('Natural') ||
+          v.name.includes('Premium')
+        ) || voices[0];
+
+        utterance.voice = preferredVoice;
+      }
+
+      // Set event handlers
+      utterance.onstart = () => {
+        this.synthesisState.next('speaking');
+        this.emitEvent('playback_start', {
+          text: queueItem.text,
+          timestamp: Date.now(),
+          fallback: true
+        });
+      };
+
+      utterance.onend = () => {
+        this.synthesisState.next('idle');
+        this.emitEvent('playback_complete', {
+          text: queueItem.text,
+          timestamp: Date.now(),
+          fallback: true
+        });
+
+        // Remove from queue
+        this.speakQueue.shift();
+
+        // Process next item if available
+        if (this.speakQueue.length > 0) {
+          this.useBrowserSpeechSynthesisFallback();
+        } else {
+          this.isSpeaking.next(false);
+        }
+      };
+
+      utterance.onerror = (event) => {
+        console.error('[OpenAIVoice] Browser speech synthesis error:', event);
+
+        // Remove from queue
+        this.speakQueue.shift();
+
+        // Process next item if available
+        if (this.speakQueue.length > 0) {
+          this.useBrowserSpeechSynthesisFallback();
+        } else {
+          this.isSpeaking.next(false);
+          this.synthesisState.next('error');
+        }
+      };
+
+      // Speak
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error('[OpenAIVoice] Error using browser speech synthesis:', error);
+
+      // Remove from queue
+      this.speakQueue.shift();
+
+      // Process next item if available
+      if (this.speakQueue.length > 0) {
+        this.useBrowserSpeechSynthesisFallback();
+      } else {
+        this.isSpeaking.next(false);
+        this.synthesisState.next('error');
       }
     }
   }
@@ -116,7 +217,7 @@ export class OpenAIVoiceService {
   public getErrorEvent() {
     return this.errorEvent.asObservable();
   }
-  
+
   /**
    * Get all voice synthesis events
    */
@@ -139,10 +240,10 @@ export class OpenAIVoiceService {
     this.isSpeaking.next(true);
     this.synthesisState.next('synthesizing');
     this.emitEvent('synthesis_start', { text, timestamp: Date.now() });
-    
+
     // Add to queue with voice parameter and streaming option
     this.speakQueue.push({ text, voice, streamingEnabled });
-    
+
     // Process queue if not already processing
     if (!this.isProcessing) {
       await this.processQueue();
@@ -161,40 +262,36 @@ export class OpenAIVoiceService {
 
     try {
       const text = this.speakQueue[0];
-      
+
       // Log synthesis attempt for analytics
       this.synthesisAttempts++;
       this.lastSynthesisTime = Date.now();
-      
+
       try {
         // Create request with timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-        
+
         const queueItem = text as SpeechQueueItem;
         const voiceToUse = queueItem.voice || DEFAULT_VOICE;
         const streamingEnabled = queueItem.streamingEnabled ?? ENABLE_STREAMING;
         const responseFormat = streamingEnabled ? 'opus' : DEFAULT_RESPONSE_FORMAT;
-        
-        // Make request to OpenAI TTS API
-        const response = await fetch('https://api.openai.com/v1/audio/speech', {
+
+        // Make request to our secure backend API endpoint
+        const response = await fetch(`${API_URL}/openai/tts`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model: DEFAULT_MODEL,
-            voice: voiceToUse,
-            input: queueItem.text,
-            response_format: responseFormat,
-            speed: 1.0
+            text: queueItem.text,
+            voice: voiceToUse
           }),
           signal: controller.signal
         });
-        
+
         clearTimeout(timeoutId);
-        
+
         if (!response.ok) {
           let errorMessage = 'Unknown error';
           try {
@@ -213,7 +310,7 @@ export class OpenAIVoiceService {
           }
           throw new Error(`OpenAI API error: ${errorMessage}`);
         }
-        
+
         // Process audio based on streaming preference
         if (streamingEnabled) {
           // Handle streaming response
@@ -224,31 +321,31 @@ export class OpenAIVoiceService {
           if (audioBlob.size === 0) {
             throw new Error('Received empty audio response');
           }
-          
+
           // Play the audio
           await this.playAudioFromBlob(audioBlob, queueItem.text);
         }
-        
+
         // Remove from queue
         this.speakQueue.shift();
-        
+
         this.emitEvent('synthesis_complete', { success: true, timestamp: Date.now() });
         this.synthesisSuccesses++;
-        
+
         // Reset retry count on success
         this.retryCount = 0;
       } catch (error: any) {
         console.error('[OpenAIVoice] Error synthesizing speech:', error);
-        
+
         // Handle specific error types
         if (error.name === 'AbortError') {
           console.warn('[OpenAIVoice] Request timed out, retrying...');
           // Keep in queue for retry
-        } else if (error.message?.includes('API key')) {
-          // API key error - critical
+        } else if (error.message?.includes('API') || error.message?.includes('Unauthorized')) {
+          // API error - critical
           this.errorEvent.next({
-            type: 'api_key_error',
-            message: 'Invalid API key. Please check your OpenAI API key configuration.',
+            type: 'api_error',
+            message: 'API error. Please check your API configuration.',
             timestamp: Date.now(),
             recoverable: false
           });
@@ -271,10 +368,10 @@ export class OpenAIVoiceService {
             timestamp: Date.now(),
             recoverable: this.retryCount < MAX_RETRIES
           });
-          
+
           // Increment retry count
           this.retryCount++;
-          
+
           // Remove from queue if max retries reached
           if (this.retryCount >= MAX_RETRIES) {
             console.error('[OpenAIVoice] Max retries reached, removing from queue');
@@ -282,15 +379,15 @@ export class OpenAIVoiceService {
             this.retryCount = 0;
           }
         }
-        
-        this.emitEvent('error', { 
+
+        this.emitEvent('error', {
           error: error.message || 'Unknown error',
           timestamp: Date.now()
         });
       }
     } finally {
       this.isProcessing = false;
-      
+
       // If queue is not empty, process next item
       if (this.speakQueue.length > 0) {
         // Add small delay before next request
@@ -327,25 +424,25 @@ export class OpenAIVoiceService {
 
     // Create a reader for the response body stream
     const reader = response.body.getReader();
-    
+
     // Create a new audio element for streaming
     const audio = new Audio();
     this.currentAudio = audio;
-    
+
     // Set up event handlers
     audio.onplay = () => {
       this.synthesisState.next('speaking');
       this.emitEvent('playback_start', { text, timestamp: Date.now() });
     };
-    
+
     audio.onended = () => {
       this.emitEvent('playback_complete', { text, timestamp: Date.now() });
       this.currentAudio = null;
     };
-    
+
     audio.onerror = (error) => {
       console.error('[OpenAIVoice] Audio playback error:', error);
-      this.emitEvent('error', { 
+      this.emitEvent('error', {
         type: 'playback_error',
         message: 'Error playing audio',
         timestamp: Date.now()
@@ -357,22 +454,22 @@ export class OpenAIVoiceService {
       // Create a buffer to collect chunks
       const chunks: Uint8Array[] = [];
       let totalLength = 0;
-      
+
       // Read chunks from the stream
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        
+
         chunks.push(value);
         totalLength += value.length;
-        
+
         // Emit progress event
-        this.emitEvent('streaming_progress', { 
+        this.emitEvent('streaming_progress', {
           bytesReceived: totalLength,
-          timestamp: Date.now() 
+          timestamp: Date.now()
         });
       }
-      
+
       // Combine all chunks into a single Uint8Array
       const allChunks = new Uint8Array(totalLength);
       let position = 0;
@@ -380,14 +477,14 @@ export class OpenAIVoiceService {
         allChunks.set(chunk, position);
         position += chunk.length;
       }
-      
+
       // Convert to blob and play
       const audioBlob = new Blob([allChunks], { type: 'audio/opus' });
       const audioUrl = URL.createObjectURL(audioBlob);
       audio.src = audioUrl;
-      
+
       await audio.play();
-      
+
       return new Promise((resolve) => {
         audio.onended = () => {
           URL.revokeObjectURL(audioUrl);
@@ -413,49 +510,49 @@ export class OpenAIVoiceService {
           this.currentAudio.pause();
           this.currentAudio = null;
         }
-        
+
         // Create audio URL
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
         this.currentAudio = audio;
-        
+
         // Set up event handlers
         audio.onplay = () => {
           this.synthesisState.next('speaking');
-          this.emitEvent('playback_start', { 
-            text, 
-            timestamp: Date.now() 
+          this.emitEvent('playback_start', {
+            text,
+            timestamp: Date.now()
           });
         };
-        
+
         audio.onended = () => {
-          this.emitEvent('playback_complete', { 
-            text, 
-            timestamp: Date.now() 
+          this.emitEvent('playback_complete', {
+            text,
+            timestamp: Date.now()
           });
-          
+
           // Clean up
           URL.revokeObjectURL(audioUrl);
           this.currentAudio = null;
-          
+
           resolve();
         };
-        
+
         audio.onerror = (error) => {
           console.error('[OpenAIVoice] Audio playback error:', error);
-          this.emitEvent('error', { 
+          this.emitEvent('error', {
             type: 'playback_error',
             message: 'Error playing audio',
             timestamp: Date.now()
           });
-          
+
           // Clean up
           URL.revokeObjectURL(audioUrl);
           this.currentAudio = null;
-          
+
           reject(new Error('Audio playback error'));
         };
-        
+
         // Start playback
         audio.play().catch(error => {
           console.error('[OpenAIVoice] Audio play error:', error);
@@ -476,7 +573,7 @@ export class OpenAIVoiceService {
       this.currentAudio.pause();
       this.currentAudio = null;
     }
-    
+
     // Clear queue
     this.speakQueue = [];
     this.isProcessing = false;
