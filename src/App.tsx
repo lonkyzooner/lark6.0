@@ -30,6 +30,7 @@ import MirandaErrorBoundary from './components/MirandaErrorBoundary';
 import { initNetworkMonitoring } from './utils/networkOptimizer';
 import initializePerformanceOptimizations from './utils/performanceOptimizer';
 import { initLocationTracking, getCurrentLocation, onLocationUpdate, LocationData } from './utils/locationTracker';
+import { apiConfigStatus } from './lib/openai-service';
 import {
   ShieldIcon,
   BookTextIcon,
@@ -325,10 +326,39 @@ function App({ initialTab = 'voice' }: AppProps) {
 
             </TabsList>
 
-            <div className="api-key-warning">
-              <AlertTriangleIcon className="api-key-warning-icon h-5 w-5" />
-              <span className="api-key-warning-text">API key configuration is missing. Using offline mode only.</span>
-            </div>
+            {/* API Key Warning */}
+            {!apiConfigStatus.configured && (
+              <div className="api-key-warning">
+                <AlertTriangleIcon className="api-key-warning-icon h-5 w-5" />
+                <div className="flex-1">
+                  <span className="api-key-warning-text">OpenAI API key is not configured on the server. Voice assistant features are limited.</span>
+                  <div className="mt-2 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-white/50 text-amber-700 border-amber-300 hover:bg-white/80"
+                      onClick={() => {
+                        // Redirect to Miranda page as a fallback
+                        setActiveTab('miranda');
+                      }}
+                    >
+                      Use Miranda Rights
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-white/50 text-amber-700 border-amber-300 hover:bg-white/80"
+                      onClick={() => {
+                        // Open documentation in a new tab
+                        window.open('https://github.com/lonkyzooner/lark6.0#configuration', '_blank');
+                      }}
+                    >
+                      View Setup Guide
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="fluid-card enhanced-card rounded-xl overflow-hidden border border-[rgba(255,255,255,0.5)] shadow-lg backdrop-blur-lg bg-opacity-95 transition-all duration-300 hover:shadow-xl" style={{ background: 'rgba(255, 255, 255, 0.92)', backdropFilter: 'blur(16px)' }}>
               <TabsContent value="dashboard" className="focus-visible:outline-none focus-visible:ring-0 m-0 animate-in fade-in-50 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=active]:duration-300">

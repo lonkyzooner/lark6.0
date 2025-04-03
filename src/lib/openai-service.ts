@@ -10,7 +10,41 @@ import { commandLearning } from './command-learning';
 // Get API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
+// Track API configuration status
+export const apiConfigStatus = {
+  checked: false,
+  configured: false,
+  error: null as string | null
+};
+
 console.log('OpenAI service initialized to use secure backend API endpoints');
+
+// Check API configuration on startup
+checkAPIConfiguration().catch(err => {
+  console.error('Error checking API configuration:', err);
+  apiConfigStatus.error = 'Failed to check API configuration';
+});
+
+// Function to check API configuration
+async function checkAPIConfiguration() {
+  try {
+    const response = await fetch(`${API_URL}/config`);
+    if (response.ok) {
+      const data = await response.json();
+      apiConfigStatus.configured = data.config?.openai?.configured || false;
+      apiConfigStatus.checked = true;
+      apiConfigStatus.error = null;
+      console.log(`API configuration checked: OpenAI ${apiConfigStatus.configured ? 'configured' : 'not configured'}`);
+    } else {
+      apiConfigStatus.error = 'API configuration endpoint not available';
+      apiConfigStatus.checked = true;
+    }
+  } catch (error) {
+    console.error('Error checking API configuration:', error);
+    apiConfigStatus.error = 'Failed to check API configuration';
+    apiConfigStatus.checked = true;
+  }
+}
 
 // Create axios instance for API calls with enhanced error handling
 const api = axios.create({
